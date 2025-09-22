@@ -1,0 +1,96 @@
+如果你需要检查db的话你可以创建一个php文件之后运行输出了之后再删除文件
+当你需要完成任务的时候你需要先把这些任务细分之后排序一下优先级 然后把一个任务拆分成多个步骤来修改 分析可行性，注意事项和充分了解上下文之后 创建一个文件来存储你的计划和详细步骤要点等 之后每完成一个步骤就在任务步骤旁打勾 并说明任务完成度和功能 你需要把一个任务分成多个步骤防止一次性修改过多造成崩溃
+对于用户友好的提示框你需要替换所有的alert和confirm：
+上传成功时显示Toast通知
+上传失败时显示错误详情
+删除确认时使用更友好的确认对话框
+删除成功/失败时提供相应反馈
+在Windows PowerShell中需要使用分号而不是&&
+修改可以解决Livewire加载问题
+Livewire使用部分页面刷新的技术，当导航到新页面时，它可能不会完全重新加载页面的所有资源。这就导致了以下问题：
+变量重复声明：之前的代码在每次页面加载时都会重新定义window.templateEditor对象，如果它已经存在，会导致冲突。
+事件绑定重复：每次Livewire部分刷新页面，都会尝试重新绑定事件，可能导致事件处理程序被多次调用。
+DOM加载时机问题：Livewire刷新时，DOM元素的加载顺序和可用性与常规页面加载不同。
+通过使用IIFE和初始化标记，我们确保JavaScript代码只会初始化一次，即使在Livewire环境中也不会发生冲突。同时，通过多重事件监听和安全的DOM选择器方法，确保在各种加载情况下都能正确获取和处理DOM元素。
+对于livewire 加载你可以使用 document.addEventListener('turbolinks:load', initializeElements);
+ 
+对于select 框 你需要使用自定义的select组件
+`<div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                        <div class="p-4">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center">
+                                                <div class="flex-shrink-0">
+                                                                                                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                                <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                                                </svg>
+                                                            </div>
+                                                                                                            </div>
+                                                <div class="ml-3">
+                                                <h3 class="text-base font-medium text-gray-900">新商品创建通知</h3>
+                                                </div>
+                                            </div>
+
+                                        <div>
+                                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none toggle-recipients" data-type="product_created">
+                                                选择接收人
+                                                <svg class="inline-block ml-1 w-4 h-4 toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="recipient-selector hidden" id="selector-product_created">
+                                        <div class="border border-gray-300 rounded-md shadow-sm overflow-y-auto max-h-60">
+                                            <div class="p-2 border-b border-gray-200 bg-gray-50 sticky top-0">
+                                                <input type="text" class="recipient-search w-full p-2 border border-gray-300 rounded-md" placeholder="搜索用户..." data-type="product_created">
+                                            </div>
+                                            <div class="user-list p-2" data-type="product_created">
+                                                                                                        <label class="user-item flex items-center p-2 hover:bg-gray-50 rounded-md cursor-pointer mb-1">
+                                                        <input type="checkbox" name="receivers[product_created][]" value="ethankhoo09@gmail.com" class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                                        <div class="ml-3 flex items-center">
+                                                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                                <span class="text-blue-800 font-medium">A</span>
+                                                            </div>
+                                                            <div class="ml-2">
+                                                                <p class="text-sm font-medium text-gray-700">Admin</p>
+                                                                <p class="text-xs text-gray-500">ethankhoo09@gmail.com</p>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                                                                        <label class="user-item flex items-center p-2 hover:bg-gray-50 rounded-md cursor-pointer mb-1">
+                                                        <input type="checkbox" name="receivers[product_created][]" value="regular_user@example.com" class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                                        <div class="ml-3 flex items-center">
+                                                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                                <span class="text-blue-800 font-medium">R</span>
+                                                            </div>
+                                                            <div class="ml-2">
+                                                                <p class="text-sm font-medium text-gray-700">Regular User</p>
+                                                                <p class="text-xs text-gray-500">regular_user@example.com</p>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                                                                </div>
+                                        </div>
+                                        
+                                        <div class="mt-2">
+                                            <div class="flex space-x-2">
+                                                <button type="button" class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 select-all-btn" data-type="product_created">
+                                                    全选
+                                                </button>
+                                                <button type="button" class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 deselect-all-btn" data-type="product_created">
+                                                    清空
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3 selected-recipients" id="selected-product_created">
+                                                                                    <div class="text-sm text-gray-500 italic">未选择接收人</div>
+                                                                            </div>
+                                </div>
+                            </div>`
+使用这个
+
+

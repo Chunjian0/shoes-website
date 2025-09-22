@@ -1,0 +1,482 @@
+/**
+ * 奢华主题 - 卡片样式
+ * 定义各种卡片类型和状态的样式
+ */
+
+/* ==== 基础卡片 ==== */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-duration-300) var(--transition-timing-luxury);
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 卡片图片容器 */
+.card-image-container {
+  position: relative;
+  overflow: hidden;
+  padding-top: 100%; /* 1:1 宽高比 */
+}
+
+/* 卡片图片 */
+.card-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-duration-500) var(--transition-timing-luxury);
+}
+
+.card:hover .card-image {
+  transform: scale(1.05);
+}
+
+/* 卡片内容 */
+.card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  padding: var(--spacing-4);
+}
+
+/* 卡片头部 */
+.card-header {
+  padding: var(--spacing-4);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+  background-color: var(--color-background-light);
+}
+
+.card-header:first-child {
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+/* 卡片底部 */
+.card-footer {
+  padding: var(--spacing-4);
+  border-top: var(--border-width-thin) solid var(--color-border);
+  background-color: var(--color-background-light);
+}
+
+.card-footer:last-child {
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+/* 卡片标题 */
+.card-title {
+  margin-top: 0;
+  margin-bottom: var(--spacing-2);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-dark);
+  line-height: 1.2;
+}
+
+/* 卡片副标题 */
+.card-subtitle {
+  margin-top: calc(-1 * var(--spacing-1));
+  margin-bottom: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* 卡片文本 */
+.card-text {
+  margin-top: 0;
+  margin-bottom: var(--spacing-4);
+  color: var(--color-text);
+}
+
+.card-text:last-child {
+  margin-bottom: 0;
+}
+
+/* ==== 产品卡片 ==== */
+
+.product-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  border: var(--border-width-thin) solid rgba(209, 184, 115, 0.1);
+  box-shadow: var(--shadow-product);
+  transition: all 0.3s var(--transition-timing-luxury);
+  overflow: hidden;
+  height: 100%;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-product-hover);
+  border-color: rgba(209, 184, 115, 0.3);
+}
+
+/* 产品卡片图片容器 */
+.product-card-image-container {
+  position: relative;
+  overflow: hidden;
+  padding-top: 120%; /* 更高的图片区域，适合鞋子 */
+  background-color: var(--color-background-light);
+}
+
+/* 产品卡片图片 */
+.product-card-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--transition-timing-luxury);
+}
+
+.product-card:hover .product-card-image {
+  transform: scale(1.08);
+}
+
+/* 产品卡片内容 */
+.product-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  padding: var(--spacing-4);
+  background-color: var(--color-white);
+}
+
+/* 产品卡片标题 */
+.product-card-title {
+  margin-top: 0;
+  margin-bottom: var(--spacing-2);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-dark);
+  line-height: 1.2;
+  transition: color var(--transition-duration-300) ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.product-card:hover .product-card-title {
+  color: var(--color-primary);
+}
+
+/* 产品卡片品牌 */
+.product-card-brand {
+  margin-bottom: var(--spacing-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-gold-600);
+}
+
+/* 产品卡片价格 */
+.product-card-price {
+  display: flex;
+  align-items: baseline;
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-dark);
+}
+
+.product-card-price-currency {
+  font-size: var(--font-size-sm);
+  margin-right: var(--spacing-1);
+  color: var(--color-text-muted);
+}
+
+.product-card-price-original {
+  margin-left: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* 产品卡片评分 */
+.product-card-rating {
+  display: flex;
+  align-items: center;
+  margin-top: var(--spacing-2);
+}
+
+.product-card-rating-stars {
+  display: flex;
+  color: var(--color-gold-500);
+}
+
+.product-card-rating-count {
+  margin-left: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 产品卡片标签 */
+.product-card-tag {
+  position: absolute;
+  top: var(--spacing-3);
+  left: var(--spacing-3);
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  border-radius: var(--border-radius-md);
+  z-index: 1;
+}
+
+.product-card-tag-new {
+  background-color: var(--color-primary);
+  color: var(--color-black);
+}
+
+.product-card-tag-sale {
+  background-color: var(--color-error);
+  color: var(--color-white);
+}
+
+.product-card-tag-limited {
+  background: linear-gradient(135deg, var(--color-gold-400) 0%, var(--color-gold-600) 100%);
+  color: var(--color-black);
+}
+
+/* 产品卡片操作按钮 */
+.product-card-actions {
+  position: absolute;
+  top: var(--spacing-3);
+  right: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  z-index: 1;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all var(--transition-duration-300) var(--transition-timing-luxury);
+}
+
+.product-card:hover .product-card-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.product-card-action-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-full);
+  box-shadow: var(--shadow-md);
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-dark);
+  transition: all var(--transition-duration-200) ease;
+}
+
+.product-card-action-btn:hover {
+  background-color: var(--color-primary);
+  color: var(--color-black);
+  transform: scale(1.1);
+}
+
+/* 产品卡片底部 */
+.product-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--spacing-3);
+  margin-top: auto;
+}
+
+/* 产品卡片加入购物车按钮 */
+.product-card-add-to-cart {
+  margin-top: var(--spacing-3);
+  width: 100%;
+  opacity: 0.9;
+  transform: translateY(5px);
+  transition: all var(--transition-duration-300) var(--transition-timing-luxury);
+}
+
+.product-card:hover .product-card-add-to-cart {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 产品卡片变体颜色选择器 */
+.product-card-colors {
+  display: flex;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+}
+
+.product-card-color-option {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--border-radius-full);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: transform var(--transition-duration-200) ease;
+}
+
+.product-card-color-option:hover,
+.product-card-color-option.active {
+  transform: scale(1.2);
+  border-color: var(--color-text-dark);
+}
+
+/* 产品卡片尺码指示器 */
+.product-card-sizes {
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* ==== 卡片变体 ==== */
+
+/* 无边框卡片 */
+.card-borderless {
+  border: none;
+}
+
+/* 平铺卡片 */
+.card-flat {
+  box-shadow: none;
+}
+
+.card-flat:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 奢华风格卡片 */
+.card-luxury {
+  border: var(--border-width-thin) solid rgba(209, 184, 115, 0.3);
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-gold-soft);
+}
+
+.card-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--color-gold-300), var(--color-gold-500), var(--color-gold-300));
+}
+
+.card-luxury:hover {
+  border-color: rgba(209, 184, 115, 0.5);
+  box-shadow: var(--shadow-gold);
+}
+
+.card-luxury .card-title {
+  font-family: var(--font-family-serif);
+  color: var(--color-rich-black);
+}
+
+/* 水平卡片 */
+.card-horizontal {
+  flex-direction: row;
+}
+
+.card-horizontal .card-image-container {
+  width: 30%;
+  padding-top: 0;
+  height: auto;
+}
+
+.card-horizontal .card-body {
+  width: 70%;
+}
+
+/* 卡片组 */
+.card-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.card-group .card {
+  margin-bottom: var(--spacing-4);
+}
+
+/* 卡片首次加载动画 */
+.card-animated-entry {
+  animation: card-fade-in 0.8s var(--transition-timing-luxury) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes card-fade-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 动态加载卡片 - 延迟加载效果 */
+@for $i from 1 through 12 {
+  .card-animated-entry:nth-child(#{$i}) {
+    animation-delay: calc(#{$i} * 0.05s);
+  }
+}
+
+/* 卡片悬停聚焦效果 */
+.card-focus-effect {
+  transition: all var(--transition-duration-300) ease;
+}
+
+.card-group:hover .card-focus-effect:not(:hover) {
+  opacity: 0.6;
+  transform: scale(0.98);
+}
+
+/* 暗黑模式适配 */
+@media (prefers-color-scheme: dark) {
+  .card,
+  .product-card {
+    background-color: var(--color-surface);
+    border-color: var(--color-border-dark);
+  }
+  
+  .card-header,
+  .card-footer {
+    background-color: var(--color-surface-darker);
+    border-color: var(--color-border-dark);
+  }
+  
+  .product-card-body {
+    background-color: var(--color-surface);
+  }
+  
+  .product-card-action-btn {
+    background-color: var(--color-surface-lighter);
+    color: var(--color-text-light);
+  }
+  
+  .product-card-color-option {
+    border-color: var(--color-border-dark);
+  }
+  
+  .card-luxury {
+    background-color: var(--color-surface);
+    border-color: rgba(209, 184, 115, 0.2);
+  }
+} 

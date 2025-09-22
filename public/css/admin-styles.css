@@ -1,0 +1,95 @@
+body {
+    font-family: 'Figtree', sans-serif;
+}
+
+#wrapper {
+    overflow-x: hidden;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    margin-left: -15rem;
+    transition: margin 0.25s ease-out;
+}
+
+#sidebar-wrapper .sidebar-heading {
+    padding: 0.875rem 1.25rem;
+    font-size: 1.2rem;
+}
+
+#sidebar-wrapper .list-group {
+    width: 15rem;
+}
+
+#page-content-wrapper {
+    min-width: 100vw;
+}
+
+body.sb-sidenav-toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+.list-group-item.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+
+    #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+    }
+
+    body.sb-sidenav-toggled #sidebar-wrapper {
+        margin-left: -15rem;
+    }
+}
+
+/* Card Styles */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 0.75rem 1.25rem;
+}
+
+/* Tables */
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Form Styles */
+.form-label {
+    font-weight: 500;
+}
+
+.required:after {
+    content: '*';
+    color: #dc3545;
+    margin-left: 3px;
+}
+
+/* Custom Button Styles */
+.btn-icon {
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+}
+
+/* Animated sidebar toggle */
+#sidebarToggle {
+    transition: transform 0.25s ease-in-out;
+}
+
+body.sb-sidenav-toggled #sidebarToggle {
+    transform: rotate(180deg);
+}

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页产品API测试</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .product-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">首页产品API测试</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">API 状态</h2>
+            <div id="api-status" class="text-gray-700">加载中...</div>
+        </div>
+
+        <!-- 精选产品 -->
+        <div class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 id="featured-title" class="text-2xl font-bold text-gray-800">精选产品</h2>
+                    <p id="featured-subtitle" class="text-gray-600">加载中...</p>
+                </div>
+                <a id="featured-button" href="#" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">查看全部</a>
+            </div>
+            
+            <div id="featured-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+            </div>
+        </div>
+
+        <!-- 新品 -->
+        <div class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 id="new-title" class="text-2xl font-bold text-gray-800">新品上市</h2>
+                    <p id="new-subtitle" class="text-gray-600">加载中...</p>
+                </div>
+                <a id="new-button" href="#" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">查看全部</a>
+            </div>
+            
+            <div id="new-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+            </div>
+        </div>
+
+        <!-- 促销产品 -->
+        <div class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 id="sale-title" class="text-2xl font-bold text-gray-800">促销产品</h2>
+                    <p id="sale-subtitle" class="text-gray-600">加载中...</p>
+                </div>
+                <a id="sale-button" href="#" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">查看全部</a>
+            </div>
+            
+            <div id="sale-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+                <div class="animate-pulse bg-gray-200 rounded-lg h-64"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 格式化价格显示
+        function formatPrice(price) {
+            if (!price) return 'N/A';
+            return parseFloat(price).toFixed(2);
+        }
+
+        // 创建产品卡片HTML
+        function createProductCard(product) {
+            const imageUrl = product.image || (product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/300x300?text=No+Image');
+            const discountBadge = product.discount_percentage && parseFloat(product.discount_percentage) > 0 
+                ? `<span class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">-${product.discount_percentage}%</span>`
+                : '';
+            
+            return `
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md">
+                    <div class="relative">
+                        <img src="${imageUrl}" alt="${product.name}" class="w-full h-48 object-cover">
+                        ${discountBadge}
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">${product.name}</h3>
+                        <p class="text-gray-600 text-sm mb-2">SKU: ${product.sku || 'N/A'}</p>
+                        <div class="flex justify-between items-center">
+                            <p class="text-blue-600 font-bold">${formatPrice(product.selling_price)} CNY</p>
+                            <a href="/product/${product.id}" class="text-sm text-blue-600 hover:underline">查看详情</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 获取API数据并显示
+        async function fetchAndDisplayProducts() {
+            try {
+                const apiUrl = 'http://localhost:2268/api/homepage/settings';
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                // 显示API状态
+                document.getElementById('api-status').innerHTML = `
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                        <span>API请求成功 (${new Date().toLocaleTimeString()})</span>
+                    </div>
+                    <p class="mt-2">响应码: ${response.status}</p>
+                `;
+                
+                if (data.success && data.data) {
+                    const homepageData = data.data;
+                    
+                    // 精选产品
+                    if (homepageData.featured_products) {
+                        const featured = homepageData.featured_products;
+                        document.getElementById('featured-title').textContent = featured.title || '精选产品';
+                        document.getElementById('featured-subtitle').textContent = featured.subtitle || '';
+                        document.getElementById('featured-button').textContent = featured.button_text || '查看全部';
+                        document.getElementById('featured-button').href = featured.button_link || '#';
+                        
+                        if (featured.products && featured.products.length > 0) {
+                            const productsHTML = featured.products.map(product => createProductCard(product)).join('');
+                            document.getElementById('featured-products').innerHTML = productsHTML;
+                        } else {
+                            document.getElementById('featured-products').innerHTML = '<p class="col-span-4 text-center text-gray-500">暂无精选产品</p>';
+                        }
+                    }
+                    
+                    // 新品
+                    if (homepageData.new_products) {
+                        const newProducts = homepageData.new_products;
+                        document.getElementById('new-title').textContent = newProducts.title || '新品上市';
+                        document.getElementById('new-subtitle').textContent = newProducts.subtitle || '';
+                        document.getElementById('new-button').textContent = newProducts.button_text || '查看全部';
+                        document.getElementById('new-button').href = newProducts.button_link || '#';
+                        
+                        if (newProducts.products && newProducts.products.length > 0) {
+                            const productsHTML = newProducts.products.map(product => createProductCard(product)).join('');
+                            document.getElementById('new-products').innerHTML = productsHTML;
+                        } else {
+                            document.getElementById('new-products').innerHTML = '<p class="col-span-4 text-center text-gray-500">暂无新品</p>';
+                        }
+                    }
+                    
+                    // 促销产品
+                    if (homepageData.sale_products) {
+                        const saleProducts = homepageData.sale_products;
+                        document.getElementById('sale-title').textContent = saleProducts.title || '促销产品';
+                        document.getElementById('sale-subtitle').textContent = saleProducts.subtitle || '';
+                        document.getElementById('sale-button').textContent = saleProducts.button_text || '查看全部';
+                        document.getElementById('sale-button').href = saleProducts.button_link || '#';
+                        
+                        if (saleProducts.products && saleProducts.products.length > 0) {
+                            const productsHTML = saleProducts.products.map(product => createProductCard(product)).join('');
+                            document.getElementById('sale-products').innerHTML = productsHTML;
+                        } else {
+                            document.getElementById('sale-products').innerHTML = '<p class="col-span-4 text-center text-gray-500">暂无促销产品</p>';
+                        }
+                    }
+                } else {
+                    // API返回错误
+                    document.getElementById('api-status').innerHTML = `
+                        <div class="flex items-center">
+                            <span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                            <span>API请求失败</span>
+                        </div>
+                        <p class="mt-2">错误信息: ${data.message || '未知错误'}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                document.getElementById('api-status').innerHTML = `
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                        <span>API请求失败</span>
+                    </div>
+                    <p class="mt-2">错误信息: ${error.message}</p>
+                `;
+            }
+        }
+
+        // 页面加载完成后获取数据
+        document.addEventListener('DOMContentLoaded', fetchAndDisplayProducts);
+    </script>
+</body>
+</html> 

@@ -1,0 +1,543 @@
+/**
+ * 奢华主题 - 响应式设计工具类
+ * 基于移动优先设计原则，提供灵活的响应式布局和显示控制
+ */
+
+/* 显示控制 */
+.hidden {
+  display: none;
+}
+
+.block {
+  display: block;
+}
+
+.flex {
+  display: flex;
+}
+
+.grid {
+  display: grid;
+}
+
+.inline {
+  display: inline;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.inline-flex {
+  display: inline-flex;
+}
+
+/* 响应式显示类 - 移动优先设计 */
+/* 移动设备以上显示 (>= 640px) */
+@media (min-width: var(--breakpoint-sm)) {
+  .sm\:hidden {
+    display: none;
+  }
+  
+  .sm\:block {
+    display: block;
+  }
+  
+  .sm\:flex {
+    display: flex;
+  }
+  
+  .sm\:grid {
+    display: grid;
+  }
+  
+  .sm\:inline {
+    display: inline;
+  }
+  
+  .sm\:inline-block {
+    display: inline-block;
+  }
+  
+  .sm\:inline-flex {
+    display: inline-flex;
+  }
+}
+
+/* 平板设备以上显示 (>= 768px) */
+@media (min-width: var(--breakpoint-md)) {
+  .md\:hidden {
+    display: none;
+  }
+  
+  .md\:block {
+    display: block;
+  }
+  
+  .md\:flex {
+    display: flex;
+  }
+  
+  .md\:grid {
+    display: grid;
+  }
+  
+  .md\:inline {
+    display: inline;
+  }
+  
+  .md\:inline-block {
+    display: inline-block;
+  }
+  
+  .md\:inline-flex {
+    display: inline-flex;
+  }
+}
+
+/* 桌面设备以上显示 (>= 1024px) */
+@media (min-width: var(--breakpoint-lg)) {
+  .lg\:hidden {
+    display: none;
+  }
+  
+  .lg\:block {
+    display: block;
+  }
+  
+  .lg\:flex {
+    display: flex;
+  }
+  
+  .lg\:grid {
+    display: grid;
+  }
+  
+  .lg\:inline {
+    display: inline;
+  }
+  
+  .lg\:inline-block {
+    display: inline-block;
+  }
+  
+  .lg\:inline-flex {
+    display: inline-flex;
+  }
+}
+
+/* 大屏幕设备以上显示 (>= 1280px) */
+@media (min-width: var(--breakpoint-xl)) {
+  .xl\:hidden {
+    display: none;
+  }
+  
+  .xl\:block {
+    display: block;
+  }
+  
+  .xl\:flex {
+    display: flex;
+  }
+  
+  .xl\:grid {
+    display: grid;
+  }
+  
+  .xl\:inline {
+    display: inline;
+  }
+  
+  .xl\:inline-block {
+    display: inline-block;
+  }
+  
+  .xl\:inline-flex {
+    display: inline-flex;
+  }
+}
+
+/* 超大屏幕设备以上显示 (>= 1536px) */
+@media (min-width: var(--breakpoint-2xl)) {
+  .\\32xl\:hidden {
+    display: none;
+  }
+  
+  .\\32xl\:block {
+    display: block;
+  }
+  
+  .\\32xl\:flex {
+    display: flex;
+  }
+  
+  .\\32xl\:grid {
+    display: grid;
+  }
+  
+  .\\32xl\:inline {
+    display: inline;
+  }
+  
+  .\\32xl\:inline-block {
+    display: inline-block;
+  }
+  
+  .\\32xl\:inline-flex {
+    display: inline-flex;
+  }
+}
+
+/* 响应式容器 */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-4);
+  padding-right: var(--spacing-4);
+}
+
+@media (min-width: var(--breakpoint-sm)) {
+  .container {
+    max-width: var(--breakpoint-sm);
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+  }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .container {
+    max-width: var(--breakpoint-md);
+    padding-left: var(--spacing-8);
+    padding-right: var(--spacing-8);
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .container {
+    max-width: var(--breakpoint-lg);
+  }
+}
+
+@media (min-width: var(--breakpoint-xl)) {
+  .container {
+    max-width: var(--breakpoint-xl);
+  }
+}
+
+@media (min-width: var(--breakpoint-2xl)) {
+  .container {
+    max-width: var(--breakpoint-2xl);
+  }
+}
+
+/* 奢华版窄容器 - 适用于特定内容展示 */
+.container-narrow {
+  width: 100%;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-4);
+  padding-right: var(--spacing-4);
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .container-narrow {
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+  }
+}
+
+/* 响应式网格系统 */
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-cols-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.grid-cols-6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.grid-cols-12 {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+/* 响应式网格列数 */
+@media (min-width: var(--breakpoint-sm)) {
+  .sm\:grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .sm\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  .sm\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  .sm\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  
+  .sm\:grid-cols-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  
+  .sm\:grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .md\:grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  .md\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  .md\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  
+  .md\:grid-cols-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  
+  .md\:grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .lg\:grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .lg\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  .lg\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  
+  .lg\:grid-cols-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  
+  .lg\:grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+/* 响应式网格间距 */
+.gap-1 {
+  gap: var(--spacing-1);
+}
+
+.gap-2 {
+  gap: var(--spacing-2);
+}
+
+.gap-4 {
+  gap: var(--spacing-4);
+}
+
+.gap-6 {
+  gap: var(--spacing-6);
+}
+
+.gap-8 {
+  gap: var(--spacing-8);
+}
+
+.gap-12 {
+  gap: var(--spacing-12);
+}
+
+/* 响应式Flex布局辅助类 */
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+/* 响应式Flex方向 */
+@media (min-width: var(--breakpoint-sm)) {
+  .sm\:flex-row {
+    flex-direction: row;
+  }
+  
+  .sm\:flex-col {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .md\:flex-row {
+    flex-direction: row;
+  }
+  
+  .md\:flex-col {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .lg\:flex-row {
+    flex-direction: row;
+  }
+  
+  .lg\:flex-col {
+    flex-direction: column;
+  }
+}
+
+/* 响应式字体大小 */
+.text-responsive {
+  font-size: var(--font-size-base);
+}
+
+@media (min-width: var(--breakpoint-sm)) {
+  .text-responsive {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .text-responsive {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* 响应式标题 */
+.heading-responsive {
+  font-size: var(--font-size-xl);
+  line-height: 1.2;
+  font-weight: var(--font-weight-bold);
+}
+
+@media (min-width: var(--breakpoint-sm)) {
+  .heading-responsive {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .heading-responsive {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+/* 响应式边距控制 */
+.margin-responsive {
+  margin: var(--spacing-4);
+}
+
+.padding-responsive {
+  padding: var(--spacing-4);
+}
+
+@media (min-width: var(--breakpoint-sm)) {
+  .margin-responsive {
+    margin: var(--spacing-6);
+  }
+  
+  .padding-responsive {
+    padding: var(--spacing-6);
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .margin-responsive {
+    margin: var(--spacing-8);
+  }
+  
+  .padding-responsive {
+    padding: var(--spacing-8);
+  }
+} 

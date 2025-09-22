@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2563eb;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        pre {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            overflow: auto;
+            font-size: 14px;
+            max-height: 300px;
+        }
+        .success {
+            color: #059669;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>API连接测试</h1>
+    
+    <div class="test-section">
+        <h2>首页API测试</h2>
+        <div class="button-group">
+            <button onclick="testHomepageAPI('/api/homepage/data')">测试主API</button>
+            <button onclick="testHomepageAPI('/api/homepage/settings')">测试设置API</button>
+            <button onclick="testHomepageAPI('/api/homepage/banners')">测试横幅API</button>
+            <button onclick="testHomepageAPI('/api/homepage/featured-templates')">测试精选模板API</button>
+        </div>
+        <pre id="homepage-result">// 结果将显示在这里</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>API路径配置测试</h2>
+        <div class="button-group">
+            <button onclick="testAPIConfig()">测试API配置</button>
+        </div>
+        <pre id="config-result">// 结果将显示在这里</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>可用API端点</h2>
+        <ul>
+            <li><code>/api/homepage/data</code> - 首页整合数据</li>
+            <li><code>/api/homepage/settings</code> - 首页设置</li>
+            <li><code>/api/homepage/banners</code> - 横幅数据</li>
+            <li><code>/api/homepage/featured-templates</code> - 精选模板</li>
+            <li><code>/api/homepage/new-arrival-templates</code> - 新品模板</li>
+            <li><code>/api/homepage/sale-templates</code> - 特价模板</li>
+        </ul>
+    </div>
+    
+    <script>
+        async function testHomepageAPI(endpoint) {
+            const resultElement = document.getElementById('homepage-result');
+            resultElement.innerHTML = '正在请求数据...';
+            resultElement.className = '';
+            
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                
+                resultElement.innerHTML = `<span class="success">✓ 请求成功</span>\n\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultElement.innerHTML = `<span class="error">✗ 请求失败</span>\n\n${error.message}`;
+            }
+        }
+        
+        async function testAPIConfig() {
+            const resultElement = document.getElementById('config-result');
+            resultElement.innerHTML = '正在检查配置...';
+            
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                
+                resultElement.innerHTML = `<span class="success">✓ 配置获取成功</span>\n\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultElement.innerHTML = `
+                <span class="error">✗ 配置获取失败</span>\n
+                建议更新前端配置：
+                \`\`\`
+                baseURL: '/api',
+                timeout: 15000,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest'
+                }
+                \`\`\`
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 

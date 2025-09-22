@@ -1,0 +1,69 @@
+# 排序功能调试日志
+
+## 问题描述
+在商品页面，我们发现点击排序选项时，控制台显示以下日志：
+```
+[FilterSidebar] Option clicked: {value: 'price_desc', label: 'Price: High to Low'}
+[FilterSidebar JS Debug] 排序选项点击 {option: {…}, currentSort: 'newest'}
+[FilterSidebar JS Debug] 处理排序变更 {selectedOption: {…}, hasCallback: false}
+[FilterSidebar JS Debug] 更新筛选条件 {newFilters: {…}, currentExternal: {…}}
+```
+
+但是排序功能不起作用。我们注意到日志中的 `hasCallback: false`，表明没有提供 `onSortChange` 回调函数。
+
+## 调查过程
+1. 检查了项目结构，发现同时存在 `FilterSidebar.tsx` 和 `FilterSidebar.js` 两个文件。
+2. 添加调试日志，确认系统使用的是 `FilterSidebar.js` 文件。
+3. 在 `ProductsPage.js` 中检查 `FilterSidebar` 组件的使用。
+4. 发现桌面版本的 `FilterSidebar` 组件缺少 `onSortChange` 属性，而移动版本有这个属性。
+
+## 修复方案
+在桌面版本的 `FilterSidebar` 组件中添加 `onSortChange` 属性：
+```javascript
+onSortChange: (sortValue) => {
+    logDebug('Sort filter changed', { sortValue });
+    setFilters(prev => {
+        const newFilters = { ...prev, sort: sortValue };
+        logDebug('Setting filters state (sort)', newFilters);
+        return newFilters;
+    });
+    setCurrentPage(1);
+},
+```
+
+## 验证方法
+1. 在桌面视图中点击排序选项（例如"Price: High to Low"）
+2. 检查控制台日志，应该显示 `hasCallback: true`
+3. 确认排序功能正常工作，商品按照选定的排序方式显示
+
+## 额外发现
+项目同时维护了 TypeScript (.tsx) 和 JavaScript (.js) 版本的文件，实际使用的是 JavaScript 版本。在未来可能需要合并这两个版本或者统一使用 TypeScript 版本。 
+
+## 新增问题 (2023-04-28)
+在修复`onSortChange`回调函数后，我们发现虽然UI排序选项可以点击并正确触发回调，但实际排序功能仍不生效。进一步分析发现：
+
+1. `ProductsPage.js`中的排序逻辑(switch语句)只实现了`price_asc`、`price_desc`、`popularity`和`newest`的排序规则
+2. 缺少对`name_asc`和`name_desc`的排序逻辑实现
+
+## 新增修复
+在`ProductsPage.js`中添加对`name_asc`和`name_desc`的排序逻辑：
+
+```javascript
+case 'name_asc':
+    result.sort((a, b) => {
+        const nameA = (a.name || a.title || '').toLowerCase();
+        const nameB = (b.name || b.title || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+    break;
+case 'name_desc':
+    result.sort((a, b) => {
+        const nameA = (a.name || a.title || '').toLowerCase();
+        const nameB = (b.name || b.title || '').toLowerCase();
+        return nameB.localeCompare(nameA);
+    });
+    break;
+```
+
+使用`localeCompare`方法确保字符串比较在各种语言环境下都能正确工作，并考虑了不同产品数据结构可能用`name`或`title`字段的情况。 
+ 

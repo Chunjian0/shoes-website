@@ -1,0 +1,5 @@
+2025-04-04 13:05:56 - Cart Debug Script Started
+2025-04-04 13:05:56 - Session ID: 4b2m8pj5ff0sfnaceiu1lrp9ir
+2025-04-04 13:05:56 - Sending request to http://localhost:2268/api/cart with data: {"product_id":5,"quantity":1,"size":"40"}
+2025-04-04 13:05:57 - Response status: 500
+2025-04-04 13:05:57 - Response body: {"success":false,"message":"Failed to add item to cart. Please try again.","debug":null}

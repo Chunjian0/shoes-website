@@ -1,0 +1,464 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add custom CSS for the subtle background pattern */
+/* @layer utilities {
+  .subtle-pattern-bg {
+    background-image: url('@/assets/patterns/dot-pattern.svg');
+  }
+} */
+
+/* Optional: Add other global styles here */
+/* body {
+  Example: Smooth scrolling behavior */
+  /* scroll-behavior: smooth; */
+/* } */
+
+/* Base styles - Keep these */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  background-color: #f9fafb;
+  color: #111827;
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 1.875rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+a {
+  color: #1E3A8A;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #1e40af;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+ Component styles 
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.5);
+}
+
+.btn-primary {
+  background-color: #1E3A8A;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #1e40af;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: #4b5563;
+  border-color: #d1d5db;
+}
+
+.btn-secondary:hover {
+  background-color: #f9fafb;
+}
+
+.btn-accent {
+  background-color: #F97316;
+  color: white;
+}
+
+.btn-accent:hover {
+  background-color: #ea580c;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.input:focus {
+  outline: none;
+  border-color: #1E3A8A;
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.25);
+}
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+
+@media (min-width: 640px) {
+  .sm\:flex { display: flex; }
+  .sm\:hidden { display: none; }
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sm\:flex-row { flex-direction: row; }
+}
+
+@media (min-width: 768px) {
+  .md\:flex { display: flex; }
+  .md\:hidden { display: none; }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .md\:flex-row { flex-direction: row; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:flex { display: flex; }
+  .lg\:hidden { display: none; }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+ Component specific styles 
+header {
+  background-color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+header nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  header nav {
+    display: flex;
+    gap: 2rem;
+  }
+}
+
+header nav a {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+header nav a:hover {
+  color: #1E3A8A;
+}
+
+.mobile-menu {
+  display: none;
+  padding: 1rem 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.mobile-menu.open {
+  display: block;
+}
+
+.mobile-menu nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.card-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  color: #4b5563;
+  margin-bottom: 1rem;
+}
+
+footer {
+  background-color: #1f2937;
+  color: white;
+  padding: 3rem 0;
+}
+
+footer a {
+  color: #9ca3af;
+}
+
+footer a:hover {
+  color: white;
+}
+
+footer h3 {
+  color: white;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+@keyframes scrollDown {
+  0% {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-scrollDown {
+  animation: scrollDown 1.5s infinite;
+}
+
+@keyframes shine {
+  0% {
+    transform: rotate(-45deg) translateX(-100%);
+  }
+  10%, 100% {
+    transform: rotate(-45deg) translateX(100%);
+  }
+}
+
+:root {
+  --luxury-black: #0A0A0A;
+  --luxury-gold: #D4AF37;
+  --luxury-purple: #4A154B;
+  --luxury-deep-blue: #002D5D;
+  --luxury-success: #00654D;
+  --luxury-warning: #E6A817;
+}
+
+/* --- Styling for Rich Product Descriptions (Rendered via dangerouslySetInnerHTML) --- */
+
+/* Default styles for all rich descriptions */
+.product-description-rich .product-hero-section {
+    @apply bg-gray-100 p-6 rounded-t-lg mb-4 text-center relative min-h-[250px] flex items-center justify-center overflow-hidden; /* Added relative, min-height, flex for overlay */
+}
+/* Style for the overlay when a background image is present */
+.product-description-rich .product-hero-overlay {
+    @apply absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-6 text-white z-10;
+}
+.product-description-rich .product-hero-section h2 {
+     @apply text-2xl font-bold mb-1;
+}
+ .product-description-rich .product-hero-section .tagline {
+     @apply text-gray-600 italic;
+ }
+ /* Ensure text inside overlay is white by default */
+ .product-description-rich .product-hero-overlay h2 {
+    @apply text-white;
+ }
+ .product-description-rich .product-hero-overlay .tagline {
+     @apply text-gray-200 italic;
+ }
+
+.product-description-rich .product-content-section {
+    @apply text-gray-700 leading-relaxed p-6; /* Added padding */
+}
+.product-description-rich .intro-paragraph {
+    @apply mb-6;
+}
+/* Style for the new design philosophy section */
+.product-description-rich .product-design-philosophy-section {
+    @apply bg-gray-100 p-6 rounded-md my-8 text-center;
+}
+.product-description-rich .product-design-philosophy-section h3 {
+    @apply text-xl font-semibold mb-2 text-gray-800;
+}
+.product-description-rich .product-design-philosophy-section p {
+    @apply text-gray-600 italic;
+}
+/* Style for the features title */
+.product-description-rich .features-section-title {
+    @apply text-center mb-4 mt-8;
+}
+.product-description-rich .features-section-title h4 {
+    @apply text-xl font-semibold inline-block pb-1 border-b-2 border-gray-300 text-gray-800;
+}
+.product-description-rich .features-grid {
+    @apply list-none p-0 grid gap-4 sm:grid-cols-2;
+}
+ .product-description-rich .feature-item {
+     @apply bg-gray-50 p-4 rounded-md flex items-start border border-gray-200;
+ }
+ .product-description-rich .feature-icon {
+     @apply mr-3 text-2xl pt-1 text-blue-600; /* Default icon color */
+ }
+ .product-description-rich .feature-content h4 {
+     @apply font-semibold text-base mb-1 text-gray-800;
+ }
+  .product-description-rich .feature-content p {
+      @apply text-sm text-gray-600;
+  }
+
+/* --- UNIQUE Styles for Dr. Martens 1460 --- */
+#product-desc-dr-martens-1460-smooth-leather-boot .product-hero-section {
+    @apply min-h-[350px]; /* Override default height, background is inline */
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .product-hero-overlay h2 {
+    @apply text-4xl font-extrabold tracking-tight mb-2 text-white; /* Override text color for overlay */
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .product-hero-overlay .tagline {
+    @apply text-yellow-300 font-semibold text-lg italic; /* Override text color for overlay */
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .product-design-philosophy-section {
+    @apply bg-gray-900 text-white rounded-lg my-10 p-8;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .product-design-philosophy-section h3 {
+    @apply text-yellow-400 text-2xl;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .product-design-philosophy-section p {
+    @apply text-gray-300 text-lg italic;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .features-section-title h4 {
+    @apply border-yellow-500 text-gray-900;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .features-grid {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-6;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .feature-item {
+    @apply bg-gray-800 border border-gray-700 rounded-lg p-5 text-center transition-shadow duration-300 hover:shadow-md text-white;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .feature-icon {
+    @apply text-4xl mb-3 inline-block; /* Larger icon */
+}
+/* Specific icon colors for Dr. Martens */
+#product-desc-dr-martens-1460-smooth-leather-boot .feature-item:nth-child(1) .feature-icon {
+     @apply text-yellow-400;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .feature-item:nth-child(2) .feature-icon {
+     @apply text-gray-300;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .feature-item:nth-child(3) .feature-icon {
+     @apply text-red-500;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .feature-content h4 {
+    @apply text-lg font-semibold text-yellow-400 mb-2;
+}
+#product-desc-dr-martens-1460-smooth-leather-boot .feature-content p {
+    @apply text-sm text-gray-300;
+}
+
+ /* --- UNIQUE Styles for Pegasus 41 --- */
+#product-desc-nike-air-zoom-pegasus-41 .product-hero-section {
+    @apply bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-t-lg p-8 mb-6;
+}
+ #product-desc-nike-air-zoom-pegasus-41 .intro-paragraph {
+     @apply text-base;
+ }
+#product-desc-nike-air-zoom-pegasus-41 .features-grid {
+    @apply grid-cols-1 md:grid-cols-2 gap-5;
+}
+ #product-desc-nike-air-zoom-pegasus-41 .feature-item {
+    @apply border border-blue-100 shadow-sm bg-white;
+}
+#product-desc-nike-air-zoom-pegasus-41 .feature-icon {
+    @apply text-blue-700;
+}
+
+  /* --- UNIQUE Styles for Adios Pro 3 --- */
+ #product-desc-adidas-adizero-adios-pro-3 .product-hero-section {
+     @apply bg-lime-300 text-black p-8 mb-6 rounded-t-lg;
+ }
+  #product-desc-adidas-adizero-adios-pro-3 .product-hero-section .tagline {
+      @apply text-gray-800 font-semibold;
+  }
+  #product-desc-adidas-adizero-adios-pro-3 .features-grid {
+     @apply grid-cols-1 gap-5;
+ }
+ #product-desc-adidas-adizero-adios-pro-3 .feature-item {
+     @apply border-l-4 border-lime-500 pl-4 bg-gray-50;
+ }
+  #product-desc-adidas-adizero-adios-pro-3 .feature-icon {
+       @apply text-lime-600;
+} 

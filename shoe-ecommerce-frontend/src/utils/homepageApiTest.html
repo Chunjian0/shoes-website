@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页API测试工具</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #1e40af;
+        }
+        section {
+            margin-bottom: 30px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        pre {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            overflow: auto;
+            font-size: 14px;
+            max-height: 500px;
+            border: 1px solid #e5e7eb;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #059669;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        .tab-group {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #f9fafb;
+            border-color: #e5e7eb;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .transform-section {
+            display: flex;
+            gap: 20px;
+        }
+        .transform-section > div {
+            flex: 1;
+        }
+        .indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .indicator.green {
+            background-color: #10b981;
+        }
+        .indicator.red {
+            background-color: #ef4444;
+        }
+        .info-panel {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>首页API测试工具</h1>
+    
+    <div class="info-panel">
+        <p>该工具用于测试首页API响应和数据格式，帮助开发人员理解API结构并验证前端解析逻辑。</p>
+        <p>请点击下方按钮测试对应的API端点。</p>
+    </div>
+    
+    <section>
+        <h2>首页数据API测试</h2>
+        <div class="button-group">
+            <button onclick="testHomepageData()">测试主数据API</button>
+            <button onclick="testHomepageSettings()">测试设置API</button>
+            <button onclick="testHomepageBanners()">测试横幅API</button>
+            <button onclick="testTemplates()">测试模板API</button>
+        </div>
+        
+        <div class="tab-group">
+            <div class="tab active" onclick="showTab('raw')">原始响应</div>
+            <div class="tab" onclick="showTab('settings')">设置数据</div>
+            <div class="tab" onclick="showTab('templates')">模板数据</div>
+            <div class="tab" onclick="showTab('transformed')">转换后数据</div>
+        </div>
+        
+        <div id="raw" class="tab-content active">
+            <pre id="raw-response">// 等待API响应...</pre>
+        </div>
+        
+        <div id="settings" class="tab-content">
+            <pre id="settings-data">// 等待API响应...</pre>
+        </div>
+        
+        <div id="templates" class="tab-content">
+            <pre id="templates-data">// 等待API响应...</pre>
+        </div>
+        
+        <div id="transformed" class="tab-content">
+            <div class="transform-section">
+                <div>
+                    <h3>转换后的设置</h3>
+                    <pre id="transformed-settings">// 等待数据转换...</pre>
+                </div>
+                <div>
+                    <h3>布局信息</h3>
+                    <pre id="layout-info">// 等待布局信息...</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section>
+        <h2>API端点状态</h2>
+        <ul id="api-status">
+            <li><span class="indicator"></span> <code>/api/homepage/data</code> - 主数据API</li>
+            <li><span class="indicator"></span> <code>/api/homepage/settings</code> - 设置API</li>
+            <li><span class="indicator"></span> <code>/api/homepage/banners</code> - 横幅API</li>
+            <li><span class="indicator"></span> <code>/api/homepage/featured-templates</code> - 精选模板API</li>
+            <li><span class="indicator"></span> <code>/api/homepage/new-arrival-templates</code> - 新品模板API</li>
+            <li><span class="indicator"></span> <code>/api/homepage/sale-templates</code> - 特价模板API</li>
+        </ul>
+    </section>
+    
+    <section>
+        <h2>API诊断工具</h2>
+        <div class="button-group">
+            <button onclick="runDiagnostics()" class="bg-red-600 hover:bg-red-700">运行完整诊断</button>
+            <button onclick="checkLoading()" class="bg-green-600 hover:bg-green-700">检查首页加载</button>
+        </div>
+        <pre id="diagnostics-result">// 点击按钮开始诊断...</pre>
+    </section>
+    
+    <script>
+        // 显示指定的选项卡
+        function showTab(tabId) {
+            // 隐藏所有选项卡内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有选项卡的激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的选项卡内容
+            document.getElementById(tabId).classList.add('active');
+            
+            // 激活选中的选项卡
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(tabId)) {
+                    tab.classList.add('active');
+                }
+            });
+        }
+        
+        // 格式化JSON
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2);
+        }
+        
+        // 更新API状态指示器
+        function updateApiStatus(endpoint, status) {
+            const listItems = document.querySelectorAll('#api-status li');
+            
+            listItems.forEach(item => {
+                if (item.textContent.includes(endpoint)) {
+                    const indicator = item.querySelector('.indicator');
+                    
+                    if (status === 'success') {
+                        indicator.classList.add('green');
+                        indicator.classList.remove('red');
+                    } else {
+                        indicator.classList.add('red');
+                        indicator.classList.remove('green');
+                    }
+                }
+            });
+        }
+        
+        // 测试主页数据API
+        async function testHomepageData() {
+            const rawResponse = document.getElementById('raw-response');
+            const settingsData = document.getElementById('settings-data');
+            const templatesData = document.getElementById('templates-data');
+            const transformedSettings = document.getElementById('transformed-settings');
+            const layoutInfo = document.getElementById('layout-info');
+            
+            rawResponse.innerText = '正在请求数据...';
+            
+            try {
+                const response = await fetch('/api/homepage/data');
+                const data = await response.json();
+                
+                // 更新原始响应
+                rawResponse.innerText = formatJSON(data);
+                
+                // 更新API状态
+                updateApiStatus('/api/homepage/data', 'success');
+                
+                if (data.success && data.data) {
+                    // 提取设置和模板数据
+                    const settings = data.data.settings || {};
+                    const featured = data.data.featured_templates || [];
+                    const newArrivals = data.data.new_arrival_templates || [];
+                    const sales = data.data.sale_templates || [];
+                    
+                    // 更新设置数据
+                    settingsData.innerText = formatJSON(settings);
+                    
+                    // 更新模板数据
+                    templatesData.innerText = `// 精选模板 (${featured.length})
+${formatJSON(featured)}
+
+// 新品模板 (${newArrivals.length})
+${formatJSON(newArrivals)}
+
+// 特价模板 (${sales.length})
+${formatJSON(sales)}`;
+                    
+                    // 确定布局类型
+                    const layout = settings.layout || 'standard';
+                    let templateType = 'MODERN';
+                    
+                    switch (layout.toLowerCase()) {
+                        case 'classic':
+                            templateType = 'CLASSIC';
+                            break;
+                        case 'minimal':
+                            templateType = 'MINIMAL';
+                            break;
+                        case 'bold':
+                            templateType = 'BOLD';
+                            break;
+                    }
+                    
+                    // 更新转换后的设置
+                    const transformedData = {
+                        active_template: templateType,
+                        site_name: settings.site_title || 'YCE Shoes',
+                        carousel: {
+                            autoplay: true,
+                            delay: 5000,
+                            transition: 'slide',
+                            showNavigation: true,
+                            showIndicators: true
+                        },
+                        featuredProducts: {
+                            title: settings.featured_products_title || 'Featured Products',
+                            subtitle: settings.featured_products_subtitle || '',
+                            buttonText: settings.featured_products_button_text || '',
+                            buttonLink: settings.featured_products_button_link || ''
+                        },
+                        newProducts: {
+                            title: settings.new_products_title || 'New Arrivals',
+                            subtitle: settings.new_products_subtitle || '',
+                            buttonText: settings.new_products_button_text || '',
+                            buttonLink: settings.new_products_button_link || ''
+                        },
+                        saleProducts: {
+                            title: settings.sale_products_title || 'On Sale',
+                            subtitle: settings.sale_products_subtitle || '',
+                            buttonText: settings.sale_products_button_text || '',
+                            buttonLink: settings.sale_products_button_link || ''
+                        }
+                    };
+                    
+                    transformedSettings.innerText = formatJSON(transformedData);
+                    
+                    // 更新布局信息
+                    layoutInfo.innerText = `布局设置: ${layout}
+映射模板类型: ${templateType}
+
+产品数量统计:
+- 精选模板: ${featured.length}
+- 新品模板: ${newArrivals.length}
+- 特价模板: ${sales.length}
+
+页面标题: ${settings.site_title || 'YCE Shoes'}
+页面描述: ${settings.site_description || ''}`;
+                } else {
+                    settingsData.innerText = '无有效设置数据';
+                    templatesData.innerText = '无有效模板数据';
+                    transformedSettings.innerText = '无法转换数据';
+                    layoutInfo.innerText = '无法获取布局信息';
+                }
+            } catch (error) {
+                rawResponse.innerHTML = `<span class="error">请求失败</span>\n\n${error.message}`;
+                updateApiStatus('/api/homepage/data', 'error');
+            }
+        }
+        
+        // 测试设置API
+        async function testHomepageSettings() {
+            const rawResponse = document.getElementById('raw-response');
+            rawResponse.innerText = '正在请求设置数据...';
+            
+            try {
+                const response = await fetch('/api/homepage/settings');
+                const data = await response.json();
+                
+                rawResponse.innerText = formatJSON(data);
+                updateApiStatus('/api/homepage/settings', 'success');
+            } catch (error) {
+                rawResponse.innerHTML = `<span class="error">请求设置失败</span>\n\n${error.message}`;
+                updateApiStatus('/api/homepage/settings', 'error');
+            }
+        }
+        
+        // 测试横幅API
+        async function testHomepageBanners() {
+            const rawResponse = document.getElementById('raw-response');
+            rawResponse.innerText = '正在请求横幅数据...';
+            
+            try {
+                const response = await fetch('/api/homepage/banners');
+                const data = await response.json();
+                
+                rawResponse.innerText = formatJSON(data);
+                updateApiStatus('/api/homepage/banners', 'success');
+            } catch (error) {
+                rawResponse.innerHTML = `<span class="error">请求横幅失败</span>\n\n${error.message}`;
+                updateApiStatus('/api/homepage/banners', 'error');
+            }
+        }
+        
+        // 测试模板API
+        async function testTemplates() {
+            const rawResponse = document.getElementById('raw-response');
+            rawResponse.innerText = '正在请求模板数据...';
+            
+            try {
+                const [featuredResponse, newResponse, saleResponse] = await Promise.all([
+                    fetch('/api/homepage/featured-templates'),
+                    fetch('/api/homepage/new-arrival-templates'),
+                    fetch('/api/homepage/sale-templates')
+                ]);
+                
+                const featured = await featuredResponse.json();
+                const newArrivals = await newResponse.json();
+                const sales = await saleResponse.json();
+                
+                rawResponse.innerText = `// 精选模板
+${formatJSON(featured)}
+
+// 新品模板
+${formatJSON(newArrivals)}
+
+// 特价模板
+${formatJSON(sales)}`;
+                
+                updateApiStatus('/api/homepage/featured-templates', 'success');
+                updateApiStatus('/api/homepage/new-arrival-templates', 'success');
+                updateApiStatus('/api/homepage/sale-templates', 'success');
+            } catch (error) {
+                rawResponse.innerHTML = `<span class="error">请求模板失败</span>\n\n${error.message}`;
+            }
+        }
+        
+        // 初始加载主数据
+        window.onload = function() {
+            testHomepageData();
+        };
+        
+        // 运行完整API诊断
+        async function runDiagnostics() {
+            const diagnosticsResult = document.getElementById('diagnostics-result');
+            diagnosticsResult.innerText = '正在运行诊断...';
+            
+            try {
+                // 测试各个端点
+                diagnosticsResult.innerText += '\n\n正在测试API端点...';
+                
+                const endpoints = [
+                    '/api/homepage/data',
+                    '/api/homepage/settings',
+                    '/api/homepage/banners',
+                    '/api/homepage/featured-templates',
+                    '/api/homepage/new-arrival-templates',
+                    '/api/homepage/sale-templates'
+                ];
+                
+                const results = [];
+                
+                for (const endpoint of endpoints) {
+                    diagnosticsResult.innerText += `\n测试 ${endpoint}...`;
+                    try {
+                        const startTime = Date.now();
+                        const response = await fetch(endpoint, {
+                            timeout: 30000,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        const endTime = Date.now();
+                        const responseTime = endTime - startTime;
+                        
+                        if (response.ok) {
+                            diagnosticsResult.innerText += ` ✓ 成功 (${responseTime}ms)`;
+                            results.push({
+                                endpoint,
+                                success: true,
+                                status: response.status,
+                                responseTime
+                            });
+                        } else {
+                            diagnosticsResult.innerText += ` ✗ 失败 (HTTP ${response.status})`;
+                            results.push({
+                                endpoint,
+                                success: false,
+                                status: response.status,
+                                responseTime
+                            });
+                        }
+                    } catch (error) {
+                        diagnosticsResult.innerText += ` ✗ 错误: ${error.message}`;
+                        results.push({
+                            endpoint,
+                            success: false,
+                            error: error.message
+                        });
+                    }
+                }
+                
+                // 总结结果
+                const successCount = results.filter(r => r.success).length;
+                const totalResponseTime = results.reduce((total, r) => total + (r.responseTime || 0), 0);
+                const avgResponseTime = totalResponseTime / results.length;
+                
+                diagnosticsResult.innerText += '\n\n诊断摘要:';
+                diagnosticsResult.innerText += `\n成功: ${successCount}/${results.length}`;
+                diagnosticsResult.innerText += `\n平均响应时间: ${avgResponseTime.toFixed(2)}ms`;
+                
+                // 检查网络状态
+                diagnosticsResult.innerText += '\n\n网络信息:';
+                if ('connection' in navigator && navigator.connection) {
+                    const conn = navigator.connection;
+                    diagnosticsResult.innerText += `\n连接类型: ${conn.effectiveType || '未知'}`;
+                    diagnosticsResult.innerText += `\n下行速度: ${conn.downlink || '未知'}Mbps`;
+                    diagnosticsResult.innerText += `\n往返时间: ${conn.rtt || '未知'}ms`;
+                } else {
+                    diagnosticsResult.innerText += '\n无法获取网络信息';
+                }
+                
+                // 获取布局设置
+                diagnosticsResult.innerText += '\n\n检查Layout设置:';
+                try {
+                    const response = await fetch('/api/homepage/settings');
+                    if (response.ok) {
+                        const data = await response.json();
+                        const layout = data.data?.settings?.layout || '未找到';
+                        diagnosticsResult.innerText += `\n当前布局设置: ${layout}`;
+                    } else {
+                        diagnosticsResult.innerText += '\n无法获取布局设置';
+                    }
+                } catch (error) {
+                    diagnosticsResult.innerText += `\n获取布局设置失败: ${error.message}`;
+                }
+                
+            } catch (error) {
+                diagnosticsResult.innerText = `诊断失败: ${error.message}`;
+            }
+        }
+        
+        // 检查首页加载
+        async function checkLoading() {
+            const diagnosticsResult = document.getElementById('diagnostics-result');
+            diagnosticsResult.innerText = '正在检查首页加载...';
+            
+            try {
+                // 测试主数据接口
+                const startTime = Date.now();
+                diagnosticsResult.innerText += '\n\n测试主数据API...';
+                
+                try {
+                    const response = await fetch('/api/homepage/data');
+                    const endTime = Date.now();
+                    const responseTime = endTime - startTime;
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        diagnosticsResult.innerText += ` ✓ 成功 (${responseTime}ms)`;
+                        
+                        // 检查数据结构
+                        if (data.success && data.data) {
+                            diagnosticsResult.innerText += '\n\n数据结构检查:';
+                            
+                            // 检查设置
+                            if (data.data.settings) {
+                                diagnosticsResult.innerText += '\n✓ 存在settings对象';
+                                
+                                // 检查layout设置
+                                if (data.data.settings.layout) {
+                                    diagnosticsResult.innerText += `\n✓ layout设置: "${data.data.settings.layout}"`;
+                                } else {
+                                    diagnosticsResult.innerText += '\n✗ 未找到layout设置';
+                                }
+                            } else {
+                                diagnosticsResult.innerText += '\n✗ 缺少settings对象';
+                            }
+                            
+                            // 检查模板数据
+                            const featuredCount = data.data.featured_templates?.length || 0;
+                            const newCount = data.data.new_arrival_templates?.length || 0;
+                            const saleCount = data.data.sale_templates?.length || 0;
+                            
+                            diagnosticsResult.innerText += `\n✓ 精选模板: ${featuredCount}个`;
+                            diagnosticsResult.innerText += `\n✓ 新品模板: ${newCount}个`;
+                            diagnosticsResult.innerText += `\n✓ 特价模板: ${saleCount}个`;
+                            
+                        } else {
+                            diagnosticsResult.innerText += '\n✗ 数据格式不正确';
+                        }
+                    } else {
+                        diagnosticsResult.innerText += ` ✗ 失败 (HTTP ${response.status})`;
+                    }
+                } catch (error) {
+                    diagnosticsResult.innerText += ` ✗ 错误: ${error.message}`;
+                }
+                
+            } catch (error) {
+                diagnosticsResult.innerText = `加载检查失败: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

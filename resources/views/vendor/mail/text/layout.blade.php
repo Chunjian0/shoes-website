@@ -1,0 +1,6 @@
+{{ $header ?? '' }}
+
+{{ $slot }}
+{{ $subcopy ?? '' }}
+
+{{ $footer ?? '' }} 

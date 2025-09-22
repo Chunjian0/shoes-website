@@ -1,0 +1,2242 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import { Cart } from '../../store/slices/cartSlice';
+import LoadingSpinner from '../LoadingSpinner';
+import { CheckIcon, XMarkIcon as XIcon, TrashIcon, MinusIcon, PlusIcon, ShoppingCartIcon, ShoppingBagIcon, ExclamationCircleIcon, ImageIcon, ArrowLeftIcon, QuestionMarkCircleIcon, ReceiptPercentIcon, TruckIcon, CurrencyDollarIcon, TagIcon, CreditCardIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { formatCurrency } from '../../utils/formatter';
+import { toast } from 'react-toastify';
+import { getCart, updateCartItem, removeFromCart } from '../../services/cartService';
+import { apiService } from '../../services/api';
+import { store } from '../../store';
+import { handleAuthError } from '../../services/api';
+import authService from '../../services/authService';
+// 在顶部导入SkeletonLoader
+import SkeletonLoader from '../animations/SkeletonLoader';
+import ConfirmDialog from '../ConfirmDialog';
+
+// 基本CartItem定义
+interface CartItem {
+  id: number;
+  product_id: number;
+  quantity: number;
+  price: number;
+  subtotal: number;
+  name?: string;
+  image?: string;
+}
+
+// 定义模板数据类型
+interface TemplateData {
+  id: number;
+  name: string;
+  description: string;
+  category: {
+    id: number;
+    name: string;
+  };
+  parameters: Array<{
+    name: string;
+    values: string[];
+  }>;
+  images: Array<{
+    id: number;
+    url: string;
+    thumbnail: string;
+  }>;
+  is_active: boolean;
+  is_featured: boolean;
+  is_new_arrival: boolean;
+  is_sale: boolean;
+  created_at: string;
+  updated_at: string;
+  linked_products: Array<{
+    id: number;
+    name: string;
+    sku: string;
+    price: number;
+    original_price: number;
+    discount_percentage: number;
+    stock_quantity: number;
+    images: Array<{
+      id: number;
+      url: string;
+      thumbnail: string;
+    }>;
+    parameter_group: string;
+    relation_type: string;
+    parameters: Record<string, string> | any[];
+  }>;
+}
+
+// 确保CartItem类型在本文件内部明确
+type EnhancedCartItem = CartItem & {
+  product?: {
+    id: number;
+    name: string;
+    template_id?: number;
+    template_name?: string;
+    selling_price: number;
+    images?: string | any[] | {
+      id: number;
+      url: string;
+      thumbnail?: string;
+    }[];
+  };
+  specifications?: Record<string, string>;
+  images?: string[] | any[] | {
+    id: number;
+    url: string;
+    thumbnail?: string;
+  }[];
+  image?: string;
+  parameter_group?: string;
+  sku?: string;
+  price?: number;
+  discount_percentage?: string | number;
+  selling_price?: number;
+  original_price?: number | null;
+  template?: {
+    id: number;
+    name: string;
+    category: any;
+    parameters: any[];
+  };
+  isRemoving?: boolean; // 添加isRemoving属性标记正在删除的项目
+};
+
+// 定义与CartItem兼容的扩展类型
+interface CartItemBase {
+  id: number;
+  product_id: number;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+// 扩展CartItem类型，使其可以包含template属性
+interface ExtendedCartItem extends CartItemBase {
+  name?: string;
+  template?: {
+    id: number;
+    name: string;
+    category: any;
+    parameters: any[];
+  };
+  images?: any[];
+  specifications?: Record<string, string>;
+  product?: any;
+}
+
+// 特殊返回类型，用于在处理过程中传递缓存更新信息
+interface CartItemWithCacheUpdates extends EnhancedCartItem {
+  __cacheUpdates?: Record<number, TemplateData>;
+}
+
+interface CartDetailsProps {
+  cart: Cart;
+  onBackToList?: () => void;
+  onQuantityChange: (id: number, quantity: number) => void;
+  onRemoveItem: (id: number) => void;
+  onCheckout: (selectedItems?: number[]) => void;
+  isUpdating?: number | null;
+  cartLoading?: boolean;
+}
+
+// 后端API基础URL - 使用当前域名，因为图片路径通过storage:link指向public/storage目录
+const API_BASE_URL = ''; // 空字符串表示使用当前域名，无需指定完整URL
+
+// 定义动画变体
+const cardVariants = {
+  hidden: { 
+    opacity: 0,
+    y: 20,
+    scale: 0.98
+  },
+  visible: { 
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 25
+    }
+  },
+  exit: { 
+    opacity: 0,
+    y: -10,
+    scale: 0.95,
+    transition: { 
+      duration: 0.3,
+      ease: "easeIn"
+    } 
+  },
+  hover: {
+    y: -4,
+    boxShadow: "0 8px 24px -6px rgba(0, 0, 0, 0.1)",
+    transition: {
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  }
+};
+
+// 更新按钮动画变体，使其更加轻盈和响应迅速
+const buttonVariants = {
+  tap: { scale: 0.96, transition: { duration: 0.1 } },
+  hover: { scale: 1.04, transition: { duration: 0.2 } }
+};
+
+// 新增：添加价格动画变体
+const priceVariants = {
+  initial: { opacity: 0, y: 10 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      type: "spring", 
+      stiffness: 300, 
+      damping: 25 
+    }
+  },
+  exit: { opacity: 0, y: -10 }
+};
+
+// 新增：添加微妙的背景动画变体
+const bgPulseVariants = {
+  initial: { backgroundColor: "rgba(243, 244, 246, 1)" },
+  pulse: { 
+    backgroundColor: ["rgba(243, 244, 246, 1)", "rgba(236, 253, 245, 1)", "rgba(243, 244, 246, 1)"],
+    transition: { 
+      duration: 2, 
+      repeat: 0,
+      ease: "easeInOut" 
+    }
+  }
+};
+
+// 扩展Cart类型，添加我们使用的额外属性
+interface ExtendedCart extends Cart {
+  total_items?: number;
+  subtotal?: number;
+  shipping?: number;
+  tax?: number;
+  discount?: number;
+}
+
+// 在组件函数上方添加一个类型断言辅助函数
+const safeNumber = (value: any): number => {
+  if (typeof value === 'number') {
+    return value;
+  }
+  return 0;
+};
+
+const CartDetails: React.FC<CartDetailsProps> = ({
+  cart,
+  onBackToList,
+  onQuantityChange: parentOnQuantityChange,
+  onRemoveItem: parentOnRemoveItem,
+  onCheckout,
+  isUpdating: parentIsUpdating,
+  cartLoading = false,
+}) => {
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [showZeroQuantityConfirm, setShowZeroQuantityConfirm] = useState(false);
+  const [itemToCheckRemove, setItemToCheckRemove] = useState<number | null>(null);
+  const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
+  const [enhancedItems, setEnhancedItems] = useState<EnhancedCartItem[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [templateCache, setTemplateCache] = useState<Record<number, TemplateData>>({});
+  const [itemChanging, setItemChanging] = useState<number | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // 新增：本地购物车状态，用于立即更新UI
+  const [localItems, setLocalItems] = useState<EnhancedCartItem[]>([]);
+  
+  // 新增：更新队列，保存待发送到后端的更新请求
+  const updateQueueRef = useRef<Record<number, {
+    id: number, 
+    quantity: number,
+    timer: NodeJS.Timeout | null
+  }>>({});
+  
+  // 新增：更新本地状态
+  const updateLocalState = useCallback((id: number, quantity: number) => {
+    console.log(`Immediately updating UI state: Item ID=${id}, New quantity=${quantity}`);
+    
+    // 更新本地商品状态
+    setLocalItems(prev => {
+      const updatedItems = prev.map(item => {
+        if (item.id === id) {
+          // 计算新的小计
+          const price = typeof item.price === 'number' 
+            ? item.price 
+            : (item.product?.selling_price || 0);
+          
+          return {
+            ...item,
+            quantity,
+            subtotal: price * quantity
+          };
+        }
+        return item;
+      });
+      
+      return updatedItems;
+    });
+    
+    // 显示更新指示器
+    setItemChanging(id);
+    setTimeout(() => setItemChanging(null), 1000);
+  }, []);
+  
+  // 新增：处理删除项目的本地状态
+  const removeLocalItem = useCallback((id: number) => {
+    // 立即从选中项目中移除
+    setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+    
+    // 立即从本地状态移除
+    setLocalItems(prev => prev.filter(item => item.id !== id));
+    
+    // 显示删除确认提示
+    toast.success('商品已从购物车中移除');
+  }, []);
+  
+  // 新增：取消更新请求
+  const cancelPendingUpdate = useCallback((id: number) => {
+    const pendingUpdate = updateQueueRef.current[id];
+    if (pendingUpdate && pendingUpdate.timer) {
+      clearTimeout(pendingUpdate.timer);
+      delete updateQueueRef.current[id];
+    }
+  }, []);
+  
+  // 修改：数量变更函数，需要更新订单摘要
+  const handleQuantityChange = async (id: number, quantity: number) => {
+    if (quantity < 1) return;
+    
+    try {
+      // 取消之前的计时器（如果存在）
+      cancelPendingUpdate(id);
+      
+      // 立即更新本地状态，包括订单摘要
+      updateLocalState(id, quantity);
+      
+      // 创建新的延迟请求
+      const timer = setTimeout(async () => {
+        try {
+          setIsUpdating(true);
+          console.log(`Sending API update request: ID=${id}, Quantity=${quantity}`);
+          
+          // 确保CSRF令牌已初始化
+          // await csrfService.getCsrfToken();
+          
+          const result = await apiService.cart.update(id, { quantity });
+          
+          if (result) {
+            console.log('Quantity updated successfully, server response:', result);
+            // 更新成功后删除更新队列中的记录
+            delete updateQueueRef.current[id];
+            
+            // 更新完成后显示成功提示
+            toast.success('Cart updated', { 
+              position: 'bottom-right'
+            });
+          }
+        } catch (error: any) {
+          console.error('Failed to update cart:', error);
+          
+          // 特殊处理授权错误
+          if (error.response?.status === 403) {
+            await handleAuthError(error);
+          } 
+          // 处理商品不存在错误
+          else if (error.response?.status === 500 || error.response?.status === 404) {
+            console.error('Cart item may not exist:', error.response?.data);
+            toast.error('This item may have been deleted, please refresh the cart');
+            
+            // 延迟1秒后从本地状态中移除此项目
+            setTimeout(() => {
+              removeLocalItem(id);
+              
+              // 尝试刷新购物车
+              getCart({}, true).catch(e => 
+                console.error('Failed to refresh cart:', e)
+              );
+            }, 1000);
+          } else {
+            // 提取错误消息
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to update cart';
+            toast.error(`Update failed: ${errorMessage}`);
+            
+            // 失败时恢复原来的数量（从cart中获取）
+            const originalItem = cart.items.find(item => item.id === id);
+            if (originalItem) {
+              updateLocalState(id, originalItem.quantity);
+            }
+          }
+        } finally {
+          setIsUpdating(false);
+          // 完成后删除队列中的记录
+          delete updateQueueRef.current[id];
+        }
+      }, 1000); // 设置1秒的延迟
+      
+      // 将请求保存到队列中
+      updateQueueRef.current[id] = {
+        id,
+        quantity,
+        timer
+      };
+      
+    } catch (error: any) {
+      console.error('Failed to update cart:', error);
+      toast.error('Failed to update cart, please try again');
+    }
+  };
+  
+  // 修改：处理删除项目，使用apiService
+  const handleRemoveItem = useCallback(async (id: number, e?: React.MouseEvent) => {
+    // 阻止事件冒泡和默认行为
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // 先取消此项目的待处理数量更新
+    cancelPendingUpdate(id);
+    
+    // 立即从选中项目中移除
+    setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+    
+    // 立即从本地状态中删除项目，实现立即从界面消失的效果
+    setLocalItems(prev => prev.filter(item => item.id !== id));
+    
+    // 显示成功提示
+    toast.success('Item removed from cart');
+    
+    // 后台发送API请求删除项目
+    try {
+      console.log(`Sending API delete request: ID=${id}`);
+      
+      // 使用apiService而不是直接fetch
+      apiService.cart.remove(id)
+        .catch(async error => {
+          console.error('Delete request failed:', error);
+          
+          // 错误处理代码保持不变
+          if (error.response?.status === 403) {
+            await handleAuthError(error);
+          } 
+          else if (error.response?.status === 500 || error.response?.status === 404) {
+            console.log('Cart item may no longer exist, ignoring error');
+            toast.info('This item may have already been removed');
+            
+            // 尝试刷新购物车
+            getCart({}, true).catch(e => 
+              console.error('Failed to refresh cart:', e)
+            );
+          }
+          else {
+            let errorMessage = 'Failed to delete item, please try again';
+            
+            if (error.response && error.response.data && error.response.data.message) {
+              errorMessage += `: ${error.response.data.message}`;
+            }
+            
+            toast.error(errorMessage);
+            
+            // 尝试刷新购物车
+            getCart({}, true).catch(e => 
+              console.error('Failed to refresh cart:', e)
+            );
+          }
+        });
+    } catch (error) {
+      console.error('Failed to delete item:', error);
+      toast.error('Failed to delete item, please try again');
+    }
+  }, [cancelPendingUpdate]);
+  
+  // 初始化本地商品状态
+  useEffect(() => {
+    if (enhancedItems.length > 0) {
+      setLocalItems(enhancedItems);
+    }
+  }, [enhancedItems]);
+  
+  // 清理防抖计时器
+  useEffect(() => {
+    return () => {
+      // 组件卸载时清除所有计时器
+      Object.values(updateQueueRef.current).forEach(update => {
+        if (update.timer) {
+          clearTimeout(update.timer);
+        }
+      });
+    };
+  }, []);
+  
+  // 强化单个购物车项 - 确保有完整的产品和模板数据
+  const enhanceCartItem = useCallback(async (item: ExtendedCartItem, tempCache: Record<number, TemplateData>): Promise<CartItemWithCacheUpdates> => {
+    try {
+      console.log(`开始增强购物车项 #${item.id}, 商品ID: ${item.product_id}, 规格:`, item.specifications);
+      
+      // 创建基础对象副本，避免修改原对象
+      let enhancedItem: CartItemWithCacheUpdates = { ...item };
+      
+      // 首先检查backend是否已经提供了template对象
+      if (item.template && item.template.name) {
+        console.log(`购物车项 #${item.id} 已包含template对象:`, item.template);
+        
+        // 创建新的objects而不是修改原对象
+        const newSpecifications = item.specifications 
+          ? { ...item.specifications } 
+          : {};
+          
+        if (!newSpecifications.template_name) {
+          newSpecifications.template_name = item.template.name;
+        }
+        
+        // 创建product对象副本或新对象
+        const newProduct = item.product 
+          ? { ...item.product } 
+          : {
+              id: item.product_id,
+              name: item.name || '',
+              selling_price: item.price || 0,
+              images: item.images || []
+            };
+        
+        // 为product添加template信息
+        newProduct.template_id = item.template.id;
+        newProduct.template_name = item.template.name;
+        
+        // 返回包含所有增强属性的新对象
+        return {
+          ...item,
+          specifications: newSpecifications,
+          product: newProduct
+        };
+      }
+      
+      // 检查是否有模板ID (从specifications中获取或其他地方)
+      let templateId: number | undefined = undefined;
+      
+      // 从specifications中查找template_id
+      if (item.specifications && 'template_id' in item.specifications) {
+        templateId = parseInt(item.specifications.template_id);
+        console.log(`从规格中找到模板ID: ${templateId}`);
+      }
+      
+      // 如果没有找到模板ID但有product.template_id，使用它
+      if (!templateId && item.product?.template_id) {
+        templateId = item.product.template_id;
+        console.log(`从product对象中找到模板ID: ${templateId}`);
+      }
+      
+      // 如果已有包含所有需要信息的product对象，直接返回增强后的对象
+      if (item.product && item.product.name && 
+          (item.product.template_name || (templateId && tempCache[templateId]?.name))) {
+        console.log(`购物车项 #${item.id} 已有完整信息，无需增强`);
+        
+        // 如果有模板缓存但没有template_name，创建包含它的新对象
+        if (templateId && tempCache[templateId]?.name) {
+          // 保存模板名称，存入specifications和product副本
+          const templateName = tempCache[templateId].name;
+          
+          return {
+            ...item,
+            specifications: {
+              ...(item.specifications || {}),
+              template_name: templateName
+            },
+            product: {
+              ...(item.product || {}),
+              template_name: templateName
+            }
+          };
+        }
+        
+        // 有外层的images但product.images为空，创建包含images的新对象
+        if ('images' in item && Array.isArray(item.images) && item.images.length > 0 && 
+            (!item.product.images || (Array.isArray(item.product.images) && item.product.images.length === 0))) {
+          return {
+            ...item,
+            product: {
+              ...(item.product || {}),
+              images: [...item.images] // 创建数组副本
+            }
+          };
+        }
+        
+        // 返回原对象的副本
+        return { ...item };
+      }
+      
+      // 如果没有足够的产品信息，尝试获取
+      if (templateId && templateId > 0) {
+        // 检查缓存
+        if (tempCache[templateId]) {
+          console.log(`使用缓存的模板数据: ${templateId}`);
+          const cachedTemplate = tempCache[templateId];
+          
+          // 返回包含增强信息的新对象
+          return {
+            ...item,
+            template: {
+              id: cachedTemplate.id,
+              name: cachedTemplate.name,
+              category: cachedTemplate.category,
+              parameters: cachedTemplate.parameters
+            },
+            specifications: {
+              ...(item.specifications || {}),
+              template_name: cachedTemplate.name
+            },
+            product: {
+              ...(item.product || {}),
+              template_id: templateId,
+              template_name: cachedTemplate.name,
+              name: item.product?.name || cachedTemplate.name,
+              images: item.product?.images || cachedTemplate.images
+            }
+          };
+        }
+        
+        // 如果缓存中没有，尝试通过API获取模板数据
+        try {
+          const response = await apiService.templates.getById(templateId);
+          
+          if (response.success && response.data) {
+            console.log(`获取模板数据成功: ${templateId}`);
+            const template = response.data;
+            
+            // 将template添加到临时缓存，在函数外通过返回值更新状态
+            const newTemplateCache = {
+              ...tempCache,
+              [templateId]: template
+            };
+            
+            // 返回包含增强信息的新对象和更新的缓存
+            const result: CartItemWithCacheUpdates = {
+              ...item,
+              template: {
+                id: template.id,
+                name: template.name,
+                category: template.category,
+                parameters: template.parameters
+              },
+              specifications: {
+                ...(item.specifications || {}),
+                template_name: template.name
+              },
+              product: {
+                ...(item.product || {}),
+                template_id: templateId,
+                template_name: template.name,
+                name: item.product?.name || template.name,
+                images: item.product?.images || template.images
+              },
+              __cacheUpdates: newTemplateCache // 标记需要更新的缓存
+            };
+            
+            return result;
+          }
+        } catch (error) {
+          console.error(`获取模板数据失败: ${templateId}`, error);
+        }
+      }
+      
+      // 如果无法获取足够的信息，返回原始项的副本
+      return { ...item };
+    } catch (error) {
+      console.error(`增强购物车项失败: ${item.id}`, error);
+      // 出错时返回原始项的副本
+      return { ...item };
+    }
+  }, []);
+  
+  // 增强所有购物车项
+  useEffect(() => {
+    // 提前返回，避免在cart为空时进行不必要的处理
+    if (!cart || !cart.items || cart.items.length === 0) {
+      setEnhancedItems([]);
+      return;
+    }
+    
+    // 避免在组件卸载后进行状态更新
+    let isMounted = true;
+    
+    const enhanceCartItems = async () => {
+      setIsLoadingProducts(true);
+      
+      try {
+        // 创建临时缓存的副本
+        const tempCache = { ...templateCache };
+        let cacheUpdated = false;
+        
+        // 创建一个增强所有项目的Promise数组
+        const enhancedItemsPromises = cart.items.map(item => 
+          enhanceCartItem(item as ExtendedCartItem, tempCache)
+        );
+        
+        // 并行处理所有Promise
+        const results = await Promise.all(enhancedItemsPromises);
+        
+        // 检查是否需要更新缓存
+        results.forEach(result => {
+          // 使用类型保护确认__cacheUpdates存在
+          if ('__cacheUpdates' in result && result.__cacheUpdates) {
+            // 合并缓存更新
+            Object.assign(tempCache, result.__cacheUpdates);
+            cacheUpdated = true;
+            // 删除临时属性以避免保存到状态中
+            delete result.__cacheUpdates;
+          }
+        });
+        
+        // 如果组件已卸载，不进行状态更新
+        if (!isMounted) return;
+        
+        // 更新缓存（如果有变化）
+        if (cacheUpdated) {
+          setTemplateCache(tempCache);
+        }
+        
+        // 设置增强后的结果
+        setEnhancedItems(results);
+      } catch (error) {
+        console.error('增强购物车项失败:', error);
+        
+        // 如果组件已卸载，不进行状态更新
+        if (!isMounted) return;
+        
+        // 发生错误时，使用原始项目
+        setEnhancedItems(cart.items as EnhancedCartItem[]);
+      } finally {
+        // 如果组件已卸载，不进行状态更新
+        if (isMounted) {
+          setIsLoadingProducts(false);
+        }
+      }
+    };
+    
+    enhanceCartItems();
+    
+    // 清理函数
+    return () => {
+      isMounted = false;
+    };
+  }, [cart, enhanceCartItem, templateCache]);
+  
+  // 重置所选物品
+  useEffect(() => {
+    setSelectedItems([]);
+    setSelectAll(false);
+  }, [cart?.id]);
+  
+  // Calculate selected items total
+  const getSelectedTotal = () => {
+    if (selectedItems.length === 0) return cart.total;
+    
+    return cart.items
+      .filter(item => selectedItems.includes(item.id))
+      .reduce((sum, item) => {
+        const enhancedItem = item as EnhancedCartItem;
+        const price = typeof enhancedItem.price === 'number' ? enhancedItem.price : (enhancedItem.product?.selling_price || 0);
+        return sum + price * enhancedItem.quantity;
+      }, 0);
+  };
+  
+  // Get cart type display name - 英文版
+  const getCartTypeName = (type: string) => {
+    switch(type) {
+      case 'wishlist': return 'Wishlist';
+      case 'saveforlater': return 'Save for Later';
+      default: return 'Shopping Cart';
+    }
+  };
+  
+  // Handle item selection toggle
+  const toggleItemSelection = (id: number) => {
+    if (selectedItems.includes(id)) {
+      setSelectedItems(selectedItems.filter(itemId => itemId !== id));
+    } else {
+      setSelectedItems([...selectedItems, id]);
+    }
+  };
+  
+  // Select all items
+  const selectAllItems = () => {
+    if (selectedItems.length === cart.items.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(cart.items.map(item => item.id));
+    }
+  };
+  
+  // 修复价格显示和计算方法，确保正确处理折扣
+  const getItemPrice = (item: EnhancedCartItem) => {
+    try {
+      // 记录日志帮助调试
+      console.log('计算商品价格详情:', {
+        id: item.id,
+        price: item.price,
+        sellingPrice: item.selling_price,
+        discountPercentage: item.discount_percentage,
+        originalPrice: item.original_price,
+        productSellingPrice: item.product?.selling_price
+      });
+      
+      // 如果有discount_percentage和price，优先计算折扣价格
+      if (item.discount_percentage && item.price) {
+        const discount = parseFloat(item.discount_percentage.toString()) / 100;
+        const discountedPrice = item.price * (1 - discount);
+        console.log(`通过折扣计算: 原价${item.price} * (1 - ${discount}) = ${discountedPrice}`);
+        return discountedPrice.toFixed(2);
+      }
+      
+      // 如果有selling_price，直接使用（已经是折扣后的价格）
+      if (item.selling_price && Number(item.selling_price) > 0) {
+        console.log(`使用selling_price: ${item.selling_price}`);
+        return Number(item.selling_price).toFixed(2);
+      }
+      
+      // 如果直接有original_price和price，则price已经是折扣后的价格
+      if (item.original_price && item.price) {
+        console.log(`使用折扣后价格: ${item.price} (原价: ${item.original_price})`);
+        return item.price.toFixed(2);
+      }
+      
+      // 其他情况使用普通价格
+      if (typeof item.price === 'number' && item.price > 0) {
+        console.log(`使用普通价格: ${item.price}`);
+        return item.price.toFixed(2);
+      }
+      
+      // 使用product中的selling_price作为后备
+      if (item.product?.selling_price) {
+        console.log(`使用product.selling_price: ${item.product.selling_price}`);
+        return item.product.selling_price.toFixed(2);
+      }
+      
+      // 最后处理边缘情况
+      console.log(`没有找到合适的价格，使用默认值: ${item.price || '0.00'}`);
+      return item.price ? item.price.toFixed(2) : '0.00';
+    } catch (error) {
+      console.error('价格计算出错:', error);
+      return '0.00';
+    }
+  };
+  
+  // Get display quantity
+  const getDisplayQuantity = (item: EnhancedCartItem) => {
+    return getLocalQuantity(item.id);
+  };
+  
+  // Get subtotal for an item - 优化小计计算
+  const getItemSubtotal = (item: EnhancedCartItem) => {
+    try {
+      if (!item) {
+        console.error('计算小计错误: 商品为空');
+        return '0.00';
+      }
+      
+      // 使用getItemPrice获取带折扣的单价
+      const priceStr = getItemPrice(item);
+      const price = parseFloat(priceStr);
+      
+      if (isNaN(price)) {
+        console.error(`计算小计错误: 价格格式错误 "${priceStr}"`);
+        return '0.00';
+      }
+      
+      // 使用本地数量
+      const quantity = getDisplayQuantity(item);
+      
+      if (isNaN(quantity)) {
+        console.error(`计算小计错误: 数量格式错误 "${quantity}"`);
+        return '0.00';
+      }
+      
+      // 计算小计并保留两位小数
+      const subtotal = price * quantity;
+      return subtotal.toFixed(2);
+    } catch (error) {
+      console.error('计算商品小计时出错:', error);
+      return '0.00';
+    }
+  };
+  
+  // Format specifications for display
+  const formatSpecifications = (specs: any) => {
+    if (!specs) return [];
+    
+    return Object.entries(specs).map(([key, value]) => ({
+      name: key as string,
+      value: value as string
+    }));
+  };
+  
+  // 从parameter_group解析参数
+  const parseParameterGroup = (paramGroup: string): Record<string, string> => {
+    if (!paramGroup) return {};
+    
+    const params: Record<string, string> = {};
+    paramGroup.split(';').forEach(pair => {
+      const parts = pair.trim().split('=');
+      if (parts.length === 2) {
+        const key = parts[0].trim();
+        const value = parts[1].trim();
+        params[key] = value;
+      }
+    });
+    
+    return params;
+  };
+  
+  // 商品图片URL处理函数，增强可靠性
+  const getProductImageUrl = (item: EnhancedCartItem): string => {
+    try {
+      console.log('处理商品图片信息:', {
+        itemId: item.id,
+        productId: item.product_id,
+        hasOuterImages: 'images' in item && Array.isArray(item.images),
+        outerImages: 'images' in item ? item.images : null,
+        productData: item.product,
+        hasImages: !!(item.product?.images),
+        imageData: typeof item.product?.images === 'object' ? 
+          (Array.isArray(item.product?.images) ? item.product?.images[0] : item.product?.images) : 
+          item.product?.images
+      });
+      
+      // 首先检查外层是否有images数组
+      if ('images' in item && Array.isArray(item.images) && item.images.length > 0) {
+        const imageUrl = item.images[0];
+        console.log('从外层images数组获取URL:', imageUrl);
+        
+        if (!imageUrl) {
+          return `/images/placeholder-product.jpg`;
+        }
+        
+        if (typeof imageUrl === 'string') {
+          if (imageUrl.startsWith('http')) {
+            return imageUrl;
+          }
+          return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+        } else if (typeof imageUrl === 'object' && imageUrl !== null && 'url' in imageUrl) {
+          const url = imageUrl.url as string;
+          if (url.startsWith('http')) {
+            return url;
+          }
+          return url.startsWith('/') ? url : `/${url}`;
+        }
+      }
+      
+      // 检查product是否存在
+      if (!item.product) {
+        console.log('商品对象不存在，使用占位图');
+        return '/images/placeholder-product.jpg';
+      }
+      
+      // 检查images是否为数组类型
+      if (Array.isArray(item.product.images) && item.product.images.length > 0) {
+        // 新格式: [{url: string, alt: string}]
+        const image = item.product.images[0];
+        
+        // 检查图片对象是否有url属性
+        if (image && typeof image === 'object' && 'url' in image) {
+          const imageUrl = image.url as string;
+          console.log('从images数组对象中获取URL:', imageUrl);
+          
+          if (!imageUrl) {
+            console.log('图片URL为空，使用占位图');
+            return `/images/placeholder-product.jpg`;
+          }
+          
+          // 处理完整URL
+          if (imageUrl.startsWith('http')) {
+            return imageUrl;
+          }
+          
+          // 处理相对路径，确保有一个斜杠开头
+          return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+        }
+        
+        // 如果是字符串类型的数组元素
+        if (typeof image === 'string') {
+          const imageUrl = image;
+          console.log('从images字符串数组中获取URL:', imageUrl);
+          
+          if (!imageUrl) {
+            return `/images/placeholder-product.jpg`;
+          }
+          
+          if (imageUrl.startsWith('http')) {
+            return imageUrl;
+          }
+          
+          return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+        }
+      }
+      
+      // 检查images是否为字符串
+      if (item.product.images && typeof item.product.images === 'string') {
+        const imageUrl = item.product.images;
+        console.log('从images字符串中获取URL:', imageUrl);
+        
+        if (!imageUrl) {
+          return `/images/placeholder-product.jpg`;
+        }
+        
+        if (imageUrl.startsWith('http')) {
+          return imageUrl;
+        }
+        
+        return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      }
+      
+      // 尝试使用image字段（和images不同）
+      if (item.image) {
+        const imageUrl = item.image;
+        console.log('从item.image字段获取URL:', imageUrl);
+        
+        if (!imageUrl) {
+          return `/images/placeholder-product.jpg`;
+        }
+        
+        if (imageUrl.startsWith('http')) {
+          return imageUrl;
+        }
+        
+        return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      }
+      
+      // 如果没有有效的图片，返回占位图
+      console.log('无有效图片，使用占位图');
+      return `/images/placeholder-product.jpg`;
+    } catch (error) {
+      console.error('图片URL处理出错:', error);
+      return `/images/placeholder-product.jpg`;
+    }
+  };
+  
+  // 获取模板URL - 更新为正确的产品模板页面格式
+  const getTemplateUrl = (item: EnhancedCartItem): string => {
+    try {
+      const templateId = item.product?.template_id;
+      
+      console.log('生成模板URL:', {
+        itemId: item.id, 
+        productId: item.product_id,
+        templateId,
+        specData: item.specifications
+      });
+      
+      if (!templateId) {
+        // 如果没有模板ID，则链接到通用产品页面
+        return `/products/${item.product_id}`;
+      }
+      
+      // 基础URL - 根据要求更改为/products/{template_id}
+      let url = `/products/${templateId}`;
+      
+      // 如果有规格，添加到URL中
+      if (item.specifications && Object.keys(item.specifications).length > 0) {
+        const specParams = new URLSearchParams();
+        // 排除template_id，它已在路径中使用
+        for (const [key, value] of Object.entries(item.specifications)) {
+          if (key !== 'template_id') {
+            specParams.append(key, value);
+          }
+        }
+        
+        if (Array.from(specParams).length > 0) {
+          url += `?${specParams.toString()}`;
+        }
+      } else {
+        // 如果没有规格，尝试从缓存找到这个产品的规格
+        const cachedTemplate = templateCache[templateId];
+        if (cachedTemplate) {
+          const linkedProduct = cachedTemplate.linked_products.find(p => p.id === item.product_id);
+          if (linkedProduct && linkedProduct.parameter_group) {
+            const params = parseParameterGroup(linkedProduct.parameter_group);
+            if (Object.keys(params).length > 0) {
+              const specParams = new URLSearchParams();
+              for (const [key, value] of Object.entries(params)) {
+                specParams.append(key, value);
+              }
+              url += `?${specParams.toString()}`;
+            }
+          }
+        }
+      }
+      
+      console.log('生成的URL路径:', url);
+      return url;
+    } catch (error) {
+      console.error('模板URL生成出错:', error);
+      return `/products/${item.product_id}`;
+    }
+  };
+
+  // 获取商品名称的函数
+  const getProductName = (item: EnhancedCartItem) => {
+    const product = item.product;
+    
+    // 检查template对象中的name
+    if (item.template?.name) {
+      console.log('使用template.name:', item.template.name);
+      return item.template.name;
+    }
+    
+    // 检查specifications中的template_name
+    if (item.specifications?.template_name) {
+      console.log('使用specifications.template_name:', item.specifications.template_name);
+      return item.specifications.template_name;
+    }
+    
+    // 检查product的template_name
+    if (product?.template_name) {
+      console.log('使用product.template_name:', product.template_name);
+      return product.template_name;
+    }
+    
+    // 最后使用product的name
+    if (product?.name) {
+      console.log('使用product.name:', product.name);
+      return product.name;
+    }
+    
+    console.log('没有找到名称，使用默认名称:', `未知商品 #${item.id}`);
+    return `未知商品 #${item.id}`;
+  };
+
+  // 获取变体名称的函数
+  const getVariantName = (item: EnhancedCartItem) => {
+    const product = item.product;
+    const templateName = item.specifications?.template_name || product?.template_name;
+    
+    if (!product) return '';
+    
+    // 处理变体名称
+    const specs = item.specifications || {};
+    const specEntries = Object.entries(specs).filter(
+      ([key]) => key !== 'template_id' && key !== 'template_name'
+    );
+    
+    if (specEntries.length === 0) {
+      return '';
+    }
+    
+    // 构建变体描述，格式为：变体：模板名称 (规格1: 值1, 规格2: 值2)
+    const specsText = specEntries
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(', ');
+    
+    return `变体: ${templateName || product.name} (${specsText})`;
+  };
+
+  // 检查是否存在有效的购物车数据
+  const displayItems = enhancedItems.length > 0 ? enhancedItems : cart.items as EnhancedCartItem[];
+  
+  // 添加调试日志
+  console.log('Cart data:', cart);
+  console.log('Enhanced items:', enhancedItems);
+  console.log('Local items:', localItems);
+  console.log('Display items:', displayItems);
+  
+  // 执行删除项目 - 更新为使用新的删除方法
+  const executeRemove = (id: number, e?: React.MouseEvent) => {
+    // 阻止事件冒泡和默认行为
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // 关闭确认对话框
+    setItemToCheckRemove(null);
+    
+    // 使用新的立即更新UI的删除方法
+    handleRemoveItem(id);
+    
+    // 防止默认的确认对话框显示
+    return false;
+  };
+  
+  // 处理删除确认
+  const handleRemoveConfirm = (id: number, e?: React.MouseEvent) => {
+    // 阻止事件冒泡和默认行为
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // 为避免重复确认，如果已经有确认框在显示，就直接执行删除
+    if (itemToCheckRemove !== null) {
+      handleRemoveItem(id);
+      return;
+    }
+    
+    setItemToCheckRemove(id);
+  };
+  
+  // 处理数量减少
+  const handleDecrease = (id: number, e?: React.MouseEvent) => {
+    // 阻止事件冒泡和默认行为
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    const currentQuantity = getLocalQuantity(id);
+    
+    if (currentQuantity === 1) {
+      setShowZeroQuantityConfirm(true);
+      setItemToCheckRemove(id);
+      return;
+    }
+    
+    // 添加动画触发
+    const item = document.querySelector(`[data-item-id="${id}"]`);
+    if (item) {
+      item.classList.add('quantity-changed');
+      setTimeout(() => {
+        item.classList.remove('quantity-changed');
+      }, 700);
+    }
+    
+    // 添加按钮脉动效果
+    const button = e?.currentTarget;
+    if (button) {
+      button.classList.add('button-pulse');
+      setTimeout(() => {
+        button.classList.remove('button-pulse');
+      }, 300);
+    }
+    
+    // 添加数量减少动画类
+    const quantityElement = item?.querySelector('.quantity-display');
+    if (quantityElement) {
+      quantityElement.classList.add('quantity-decrement');
+      setTimeout(() => {
+        quantityElement.classList.remove('quantity-decrement');
+      }, 200);
+    }
+    
+    // 立即更新UI
+    updateLocalState(id, currentQuantity - 1);
+    // 延迟发送API请求
+    handleQuantityChange(id, currentQuantity - 1);
+  };
+  
+  // 处理数量增加
+  const handleIncrease = (id: number, e?: React.MouseEvent) => {
+    // 阻止事件冒泡和默认行为
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    const currentQuantity = getLocalQuantity(id);
+    
+    // 添加动画触发
+    const item = document.querySelector(`[data-item-id="${id}"]`);
+    if (item) {
+      item.classList.add('quantity-changed');
+      setTimeout(() => {
+        item.classList.remove('quantity-changed');
+      }, 700);
+    }
+    
+    // 添加按钮脉动效果
+    const button = e?.currentTarget;
+    if (button) {
+      button.classList.add('button-pulse');
+      setTimeout(() => {
+        button.classList.remove('button-pulse');
+      }, 300);
+    }
+    
+    // 添加数量增加动画类
+    const quantityElement = item?.querySelector('.quantity-display');
+    if (quantityElement) {
+      quantityElement.classList.add('quantity-increment');
+      setTimeout(() => {
+        quantityElement.classList.remove('quantity-increment');
+      }, 200);
+    }
+    
+    // 立即更新UI
+    updateLocalState(id, currentQuantity + 1);
+    // 延迟发送API请求
+    handleQuantityChange(id, currentQuantity + 1);
+  };
+  
+  // 确定选择状态
+  useEffect(() => {
+    setSelectAll(selectedItems.length === localItems.length && localItems.length > 0);
+  }, [selectedItems, localItems.length]);
+
+  // 获取本地商品数量 - 增强处理边缘情况
+  const getLocalQuantity = (id: number): number => {
+    try {
+      if (!id || isNaN(id)) {
+        console.error('获取数量错误: 无效的ID', id);
+        return 0;
+      }
+      
+      const item = localItems.find(item => item.id === id);
+      
+      if (!item) {
+        console.warn(`未找到ID为${id}的商品，返回默认数量0`);
+        return 0;
+      }
+      
+      // 确保返回的是有效数字
+      const quantity = item.quantity;
+      
+      if (typeof quantity !== 'number' || isNaN(quantity) || quantity < 0) {
+        console.warn(`商品#${id}的数量无效(${quantity})，返回默认数量1`);
+        return 1;
+      }
+      
+      return quantity;
+    } catch (error) {
+      console.error('获取本地数量时出错:', error);
+      return 1; // 出错时返回默认数量1
+    }
+  };
+  
+  // 检查项目是否有待处理的数量更新
+  const isPendingUpdate = (id: number): boolean => {
+    return !!updateQueueRef.current[id];
+  };
+
+  // 处理结账
+  const handleCheckout = useCallback((e?: React.MouseEvent) => {
+    // 阻止事件冒泡和默认行为
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // 如果没有选择任何商品，显示提示
+    if (selectedItems.length === 0) {
+      toast.warning('请至少选择一个商品进行结账');
+      return;
+    }
+    
+    console.log('执行结账，选择的项目:', selectedItems);
+    
+    // 如果有选择项，则使用选择的商品结账
+    if (onCheckout) {
+      onCheckout(selectedItems);
+      setShowCheckoutConfirm(false);
+      
+      // 成功结账后清空本地状态
+      setLocalItems([]);
+      setSelectedItems([]);
+    }
+  }, [selectedItems, onCheckout]);
+
+  // 通知父组件结账流程结束
+  useEffect(() => {
+    // 当本地商品列表为空（结账完成）时，通知父组件
+    if (localItems.length === 0 && cart.items.length > 0) {
+      // 不再调用parentOnClearCart
+      console.log('Cart items cleared or checkout completed');
+    }
+  }, [localItems.length, cart.items.length]);
+
+  // 添加：验证购物车数据的有效性
+  const validateCartData = useCallback((cartItems: EnhancedCartItem[]): EnhancedCartItem[] => {
+    // 过滤掉无效的购物车项
+    return cartItems.filter(item => {
+      // 检查必要字段是否存在
+      const isValid = item && 
+                     typeof item.id === 'number' && 
+                     typeof item.product_id === 'number' && 
+                     typeof item.quantity === 'number';
+      
+      if (!isValid) {
+        console.warn('发现无效的购物车项:', item);
+      }
+      
+      return isValid;
+    });
+  }, []);
+  
+  // 增强组件初始化逻辑
+  useEffect(() => {
+    // 确保初始化时不显示清空购物车确认对话框
+    setShowClearCartConfirm(false);
+    
+    // 设置初始购物车状态
+    if (cart && cart.items) {
+      // 验证购物车数据
+      const validItems = validateCartData(cart.items as EnhancedCartItem[]);
+      
+      // 如果有无效数据，记录日志
+      if (validItems.length !== cart.items.length) {
+        console.warn(`检测到${cart.items.length - validItems.length}个无效的购物车项，已被过滤`);
+      }
+      
+      // 初始化本地状态
+      setLocalItems(validItems);
+    }
+    
+  }, []); // 空依赖数组确保只运行一次
+  
+  // 添加：监听购物车ID变化，确保每次切换购物车时都重置对话框状态
+  useEffect(() => {
+    // 重置清空购物车确认状态，防止自动弹出
+    setShowClearCartConfirm(false);
+    console.log('购物车ID变更，重置清空确认对话框状态');
+  }, [cart.id]);
+  
+  // 添加：自动修复功能 - 当检测到后端购物车数据更新时刷新本地状态
+  useEffect(() => {
+    // 检查购物车数据是否变化
+    if (cart && cart.items && enhancedItems.length > 0) {
+      // 获取服务器上的商品ID列表
+      const serverItemIds = new Set(cart.items.map(item => item.id));
+      // 获取本地状态中的商品ID列表
+      const localItemIds = new Set(localItems.map(item => item.id));
+      
+      // 检查是否有不匹配的项目
+      let needsSync = false;
+      
+      // 检查本地是否有服务器上不存在的项目
+      for (const localId of localItemIds) {
+        if (!serverItemIds.has(localId)) {
+          console.warn(`本地购物车包含服务器上不存在的项目: ${localId}`);
+          needsSync = true;
+          break;
+        }
+      }
+      
+      // 检查服务器上是否有本地不存在的项目
+      if (!needsSync) {
+        for (const serverId of serverItemIds) {
+          if (!localItemIds.has(serverId)) {
+            console.warn(`服务器上有本地购物车不存在的项目: ${serverId}`);
+            needsSync = true;
+            break;
+          }
+        }
+      }
+      
+      // 如果需要同步，更新本地状态
+      if (needsSync) {
+        console.log('检测到购物车数据不一致，正在同步...');
+        // 使用验证过的增强项目更新本地状态
+        setLocalItems(validateCartData(enhancedItems));
+      }
+    }
+  }, [cart.items, enhancedItems, localItems, validateCartData]);
+
+  // 渲染加载状态 - 注意：不要在条件判断中提前返回，避免Hook调用不一致
+  if (!cart || !cart.items) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <LoadingSpinner size="large" />
+        <p className="mt-4 text-gray-600">Loading cart data...</p>
+      </div>
+    );
+  }
+  
+  // 是否正在加载产品数据 - 注意：不要在条件判断中提前返回，避免Hook调用不一致
+  if (isLoadingProducts) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <LoadingSpinner size="large" />
+        <p className="mt-4 text-gray-600">加载产品数据中...</p>
+      </div>
+    );
+  }
+
+  // 在组件返回前添加CSS样式
+  const cartAnimationStyles = `
+    @keyframes quantityPulse {
+      0% { background-color: transparent; }
+      30% { background-color: rgba(219, 234, 254, 0.6); }
+      100% { background-color: transparent; }
+    }
+    
+    @keyframes subtotalHighlight {
+      0% { color: #1F2937; transform: scale(1); }
+      50% { color: #3B82F6; transform: scale(1.1); }
+      100% { color: #1F2937; transform: scale(1); }
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(-10px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes floatDown {
+      0% { opacity: 0; transform: translateY(-6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes scaleButton {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+    
+    .quantity-changed {
+      animation: quantityPulse 0.7s ease-out;
+    }
+    
+    .subtotal-changed {
+      animation: subtotalHighlight 0.7s ease-out;
+    }
+    
+    .cart-item-enter {
+      animation: fadeInUp 0.5s ease-out;
+    }
+    
+    .cart-icon-animate {
+      animation: slideIn 0.4s ease-out;
+    }
+    
+    .quantity-increment {
+      animation: floatDown 0.2s ease-out;
+    }
+    
+    .quantity-decrement {
+      animation: floatUp 0.2s ease-out;
+    }
+    
+    .button-pulse {
+      animation: scaleButton 0.3s ease-out;
+    }
+    
+    .loading-bar {
+      height: 2px;
+      background: linear-gradient(90deg, #3B82F6, #60A5FA);
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-size: 200% 100%;
+      animation: loadingBar 1.5s infinite linear;
+    }
+    
+    @keyframes loadingBar {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    .animate-bounce-subtle {
+      animation: bounceSlight 2s infinite ease-in-out;
+    }
+    
+    @keyframes bounceSlight {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    
+    .pulse-shadow {
+      animation: pulseShadow 2s infinite;
+    }
+    
+    @keyframes pulseShadow {
+      0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3); }
+      70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+  `;
+
+  return (
+    <>
+      <style>{cartAnimationStyles}</style>
+      <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-10 bg-white min-h-screen max-w-7xl">
+        {/* 页面标题 - 更大更突出 */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-10 pb-6 border-b border-gray-100">
+          <div className="flex items-center">
+            <button 
+              onClick={onBackToList}
+              className="text-gray-500 hover:text-gray-700 transition-colors duration-200 mr-4 flex items-center"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+              <span className="ml-2 text-sm font-medium hidden sm:inline">Back</span>
+            </button>
+            <h1 className="text-2xl font-medium text-gray-800">{getCartTypeName(cart.type)}</h1>
+          </div>
+          
+          {/* 移除清空购物车按钮 */}
+        </div>
+        
+        {/* 加载指示器 */}
+        {cartLoading && (
+          <div className="flex justify-center items-center py-12">
+            <LoadingSpinner size="large" />
+          </div>
+        )}
+        
+        {/* 空购物车显示 - 调整样式 */}
+        {!cartLoading && cart.items.length === 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex flex-col items-center justify-center py-20 px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-gray-200 mb-10 relative animate-bounce-subtle"
+            >
+              <ShoppingCartIcon className="w-32 h-32" />
+              <motion.div 
+                className="absolute -top-4 -right-4 bg-red-50 rounded-full w-12 h-12 flex items-center justify-center"
+                initial={{ scale: 0, rotate: -45 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
+              >
+                <span className="text-red-500 text-sm font-medium">0</span>
+              </motion.div>
+            </motion.div>
+            
+            <motion.h2 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-3xl font-light text-gray-800 mb-4 text-center"
+            >
+              您的购物车还是空的
+            </motion.h2>
+            
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="text-gray-500 mb-10 text-center max-w-md text-lg"
+            >
+              您还没有添加任何商品到购物车
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-5"
+            >
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Link 
+                  to="/" 
+                  className="px-10 py-4 bg-gray-900 text-white rounded-full text-base font-medium transition-all duration-300 hover:bg-gray-800 hover:shadow-lg flex items-center"
+                >
+                  <ShoppingBagIcon className="w-5 h-5 mr-2" />
+                  开始购物
+                </Link>
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Link 
+                  to="/featured" 
+                  className="px-10 py-4 border border-gray-300 text-gray-700 rounded-full text-base font-medium transition-all duration-300 hover:bg-gray-50 hover:shadow-md flex items-center"
+                >
+                  <TagIcon className="w-5 h-5 mr-2" />
+                  查看特惠
+                </Link>
+              </motion.div>
+            </motion.div>
+            
+            {/* 添加视觉元素使空状态更丰富 */}
+            <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.7 }}
+                className="p-6 bg-blue-50 rounded-xl"
+              >
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                  <ShoppingBagIcon className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">新品上架</h3>
+                <p className="text-gray-600">浏览我们最新上架的鞋款，抢先体验</p>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9, duration: 0.7 }}
+                className="p-6 bg-purple-50 rounded-xl"
+              >
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                  <CreditCardIcon className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">尊享体验</h3>
+                <p className="text-gray-600">注册会员享受专属优惠和个性化推荐</p>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.0, duration: 0.7 }}
+                className="p-6 bg-amber-50 rounded-xl"
+              >
+                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                  <TagIcon className="w-6 h-6 text-amber-600" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">限时折扣</h3>
+                <p className="text-gray-600">多款热门鞋品限时特惠，低至5折起</p>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+        
+        {/* 自定义美化确认对话框 - 极简风格 */}
+        {itemToCheckRemove !== null && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-20 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="bg-white rounded-xl shadow-lg max-w-md w-full overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-4">
+                    <TrashIcon className="w-5 h-5 text-red-500" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-800">确认删除</h3>
+                </div>
+                
+                <motion.p 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-gray-500 mb-6"
+                >
+                  确定要从购物车中删除此商品吗？
+                </motion.p>
+                
+                <div className="flex justify-end gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(243, 244, 246, 1)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setItemToCheckRemove(null);
+                    }}
+                    className="px-5 py-2 border border-gray-200 text-gray-600 rounded-full text-sm font-medium transition-all duration-200 hover:bg-gray-50"
+                  >
+                    取消
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(31, 41, 55, 0.9)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      executeRemove(itemToCheckRemove);
+                    }}
+                    className="px-5 py-2 bg-gray-900 text-white rounded-full text-sm font-medium transition-all duration-200 hover:bg-gray-800 flex items-center"
+                  >
+                    <TrashIcon className="w-4 h-4 mr-1" />
+                    <span>删除</span>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+        
+        {/* 数量为零确认对话框 - 极简风格 */}
+        {showZeroQuantityConfirm && itemToCheckRemove !== null && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-20 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="bg-white rounded-xl shadow-lg max-w-md w-full overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mr-4">
+                    <ExclamationCircleIcon className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-800">确认删除</h3>
+                </div>
+                
+                <motion.p 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-gray-500 mb-6"
+                >
+                  将数量减至0会从购物车中移除商品，是否继续？
+                </motion.p>
+                
+                <div className="flex justify-end gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(243, 244, 246, 1)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowZeroQuantityConfirm(false);
+                      setItemToCheckRemove(null);
+                    }}
+                    className="px-5 py-2 border border-gray-200 text-gray-600 rounded-full text-sm font-medium transition-all duration-200 hover:bg-gray-50"
+                  >
+                    取消
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(31, 41, 55, 0.9)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      executeRemove(itemToCheckRemove);
+                      setShowZeroQuantityConfirm(false);
+                    }}
+                    className="px-5 py-2 bg-gray-900 text-white rounded-full text-sm font-medium transition-all duration-200 hover:bg-gray-800 flex items-center"
+                  >
+                    <TrashIcon className="w-4 h-4 mr-1" />
+                    <span>删除</span>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+        
+        {/* 清空购物车确认对话框 - 移除 */}
+        
+        {/* 结账确认对话框 */}
+        {showCheckoutConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl"
+            >
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+                  className="flex items-center justify-center w-14 h-14 rounded-full bg-green-100 mx-auto mb-5"
+                >
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ repeat: Infinity, duration: 2, repeatType: "reverse" }}
+                  >
+                    <CreditCardIcon className="h-7 w-7 text-green-600" />
+                  </motion.div>
+                </motion.div>
+                
+                <motion.h3
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-xl font-medium text-gray-900 mb-3"
+                >
+                  确认结账
+                </motion.h3>
+                
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-gray-600 mb-6"
+                >
+                  您确定要结算选中的 <span className="font-medium text-gray-800">{selectedItems.length}</span> 件商品吗？
+                </motion.p>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="mb-7 bg-gray-50 p-4 rounded-lg"
+                >
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">小计:</span>
+                    <span className="text-gray-800">${cart.total.toFixed(2)}</span>
+                  </div>
+                  {(cart as ExtendedCart).shipping !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">预计运费:</span>
+                      <span className="text-gray-800">${(cart as ExtendedCart).shipping !== undefined ? (cart as ExtendedCart).shipping!.toFixed(2) : "0.00"}</span>
+                    </div>
+                  )}
+                </motion.div>
+                
+                <div className="flex space-x-3 justify-center">
+                  <motion.button
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(243, 244, 246, 1)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                    className="px-5 py-3 bg-gray-100 text-gray-800 rounded-xl font-medium transition-all duration-200 hover:bg-gray-200 focus:outline-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowCheckoutConfirm(false);
+                    }}
+                  >
+                    返回购物车
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.03, backgroundColor: "rgba(37, 99, 235, 0.9)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                    className="px-5 py-3 bg-blue-600 text-white rounded-xl font-medium transition-all duration-200 hover:bg-blue-700 focus:outline-none flex items-center justify-center"
+                    onClick={handleCheckout}
+                  >
+                    <CreditCardIcon className="w-5 h-5 mr-2" />
+                    <span>确认结账</span>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+        
+        {/* 购物车商品列表和订单摘要 - 调整比例 */}
+        {!cartLoading && localItems.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* 购物车商品列表 */}
+            <div className="lg:col-span-8 space-y-6">
+              <AnimatePresence>
+                {localItems.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate={item.isRemoving ? "exit" : "visible"}
+                    exit="exit"
+                    whileHover={!item.isRemoving ? "hover" : undefined}
+                    className={`bg-white rounded-lg border border-gray-100 p-6 ${item.isRemoving ? 'opacity-50' : ''}`}
+                    custom={index}
+                    transition={{
+                      delay: index * 0.05,
+                    }}
+                    data-item-id={item.id}
+                  >
+                    {isPendingUpdate(item.id) && (
+                      <div className="loading-bar"></div>
+                    )}
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center">
+                      {/* 商品图片 - 稍大一些 */}
+                      <div className="sm:w-24 mb-4 sm:mb-0">
+                        <Link to={getTemplateUrl(item)} className="block relative overflow-hidden rounded-md bg-gray-50">
+                          <img
+                            src={getProductImageUrl(item)}
+                            alt={getProductName(item)}
+                            className="h-24 w-24 object-contain"
+                          />
+                          {item.discount_percentage && parseFloat(item.discount_percentage.toString()) > 0 && (
+                            <div className="absolute top-0 right-0 bg-black text-white text-xs px-1.5 py-0.5 rounded-bl-md">
+                              -{item.discount_percentage}%
+                            </div>
+                          )}
+                        </Link>
+                      </div>
+
+                      {/* 商品信息 - 改进布局 */}
+                      <div className="sm:flex-1 sm:ml-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex-1">
+                          <Link to={getTemplateUrl(item)} className="text-base font-semibold text-gray-800 hover:text-gray-600 transition-colors duration-200">
+                            {getProductName(item)}
+                          </Link>
+                          
+                          {getVariantName(item) && (
+                            <p className="text-sm text-gray-500 mt-2">
+                              {getVariantName(item)}
+                            </p>
+                          )}
+                          
+                          {/* 添加单价显示 */}
+                          <p className="text-sm text-gray-500 mt-1">
+                            单价: ${getItemPrice(item)}
+                          </p>
+                        </div>
+
+                        {/* 价格和数量控制 - 更清晰的布局 */}
+                        <div className="flex items-center justify-between mt-4 sm:mt-0">
+                          <div className="flex items-center border border-gray-200 rounded-full px-2 h-9">
+                            <motion.button
+                              variants={buttonVariants}
+                              whileTap="tap"
+                              whileHover="hover"
+                              onClick={(e) => handleDecrease(item.id, e)}
+                              className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                            >
+                              <MinusIcon className="w-4 h-4" />
+                            </motion.button>
+
+                            <div className="mx-3 w-8 text-center font-medium">
+                              <div className="relative h-5 overflow-hidden quantity-display">
+                                <AnimatePresence mode="popLayout">
+                                  <motion.span
+                                    key={getDisplayQuantity(item)}
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -5, position: "absolute" }}
+                                    transition={{ duration: 0.15 }}
+                                    className="block absolute inset-0 flex items-center justify-center text-gray-800"
+                                  >
+                                    {getDisplayQuantity(item)}
+                                  </motion.span>
+                                </AnimatePresence>
+                                
+                                {/* 加载指示器 */}
+                                {isPendingUpdate(item.id) && (
+                                  <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 0.7 }}
+                                    className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500"
+                                    layoutId={`update-indicator-${item.id}`}
+                                  />
+                                )}
+                              </div>
+                            </div>
+
+                            <motion.button
+                              variants={buttonVariants}
+                              whileTap="tap"
+                              whileHover="hover"
+                              onClick={(e) => handleIncrease(item.id, e)}
+                              className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-700"
+                            >
+                              <PlusIcon className="w-4 h-4" />
+                            </motion.button>
+                          </div>
+
+                          <div className="ml-8 flex flex-col items-end">
+                            <motion.span 
+                              key={`${item.id}-${getDisplayQuantity(item)}`}
+                              variants={priceVariants}
+                              initial="initial"
+                              animate="animate"
+                              exit="exit"
+                              className="text-base text-gray-800 font-semibold"
+                            >
+                              ${getItemSubtotal(item)}
+                            </motion.span>
+                            {item.original_price && item.original_price > item.price && (
+                              <span className="text-xs text-gray-400 line-through">
+                                ${item.original_price.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={(e) => handleRemoveConfirm(item.id, e)}
+                            className="ml-4 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                            aria-label="移除商品"
+                          >
+                            <XIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* 订单摘要 - 调整样式并添加动画 */}
+            <div className="lg:col-span-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  delay: 0.3, 
+                  duration: 0.7, 
+                  type: "spring", 
+                  stiffness: 200, 
+                  damping: 25 
+                }}
+                className="sticky top-24 bg-gray-50 p-8 rounded-lg"
+              >
+                <h2 className="text-xl font-medium text-gray-800 mb-6 pb-4 border-b border-gray-200">
+                  订单摘要
+                </h2>
+
+                <div className="space-y-4 mb-8">
+                  <motion.div 
+                    className="flex justify-between items-center"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                  >
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="text-gray-800 font-medium">${cart.total.toFixed(2)}</span>
+                  </motion.div>
+
+                  {(cart as ExtendedCart).shipping !== undefined && (cart as ExtendedCart).shipping! > 0 && (
+                    <motion.div 
+                      className="flex justify-between items-center"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.6, duration: 0.5 }}
+                    >
+                      <span className="text-gray-600 flex items-center">
+                        <TruckIcon className="w-4 h-4 mr-2" />
+                        Shipping
+                      </span>
+                      <span className="text-gray-800 font-medium">${(cart as ExtendedCart).shipping!.toFixed(2)}</span>
+                    </motion.div>
+                  )}
+
+                  {(cart as ExtendedCart).tax !== undefined && (cart as ExtendedCart).tax! > 0 && (
+                    <motion.div 
+                      className="flex justify-between items-center"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7, duration: 0.5 }}
+                    >
+                      <span className="text-gray-600 flex items-center">
+                        <ReceiptPercentIcon className="w-4 h-4 mr-2" />
+                        Tax
+                      </span>
+                      <span className="text-gray-800 font-medium">${(cart as ExtendedCart).tax!.toFixed(2)}</span>
+                    </motion.div>
+                  )}
+
+                  {(cart as ExtendedCart).discount !== undefined && (cart as ExtendedCart).discount! > 0 && (
+                    <motion.div 
+                      className="flex justify-between items-center text-green-600 font-medium"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.8, duration: 0.5 }}
+                    >
+                      <span className="flex items-center">
+                        <TagIcon className="w-4 h-4 mr-2" />
+                        Discount
+                      </span>
+                      <span>-${(cart as ExtendedCart).discount!.toFixed(2)}</span>
+                    </motion.div>
+                  )}
+                </div>
+
+                <motion.div 
+                  className="mt-8 pt-6 border-t border-gray-200"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.9, duration: 0.7 }}
+                >
+                  <motion.div 
+                    className="flex justify-between items-center mb-8"
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 1, type: "spring", stiffness: 200 }}
+                  >
+                    <span className="text-gray-800 font-medium">Total</span>
+                    <motion.span 
+                      className="text-2xl text-gray-900 font-bold"
+                      key={cart.total}
+                      initial={{ scale: 0.8 }}
+                      animate={{ scale: 1 }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 300,
+                        damping: 15
+                      }}
+                    >
+                      ${cart.total.toFixed(2)}
+                    </motion.span>
+                  </motion.div>
+
+                  {/* 修改：结账按钮增加确认和动画 */}
+                  <motion.button
+                    variants={buttonVariants}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.1, duration: 0.5 }}
+                    whileHover={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (selectedItems.length === 0) {
+                        toast.warning('Please select at least one item to checkout');
+                        return;
+                      }
+                      setShowCheckoutConfirm(true);
+                    }}
+                    className="w-full py-4 bg-gray-900 text-white rounded-full text-base font-medium transition-all duration-300 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 pulse-shadow"
+                    disabled={localItems.length === 0}
+                  >
+                    <CreditCardIcon className="w-5 h-5 mr-2" />
+                    <span>Checkout</span>
+                    <motion.span 
+                      animate={{ x: [0, 3, 0] }}
+                      transition={{ repeat: Infinity, duration: 1.5, repeatType: "reverse" }}
+                    >
+                      <ChevronRightIcon className="w-4 h-4 ml-1" />
+                    </motion.span>
+                  </motion.button>
+
+                  <motion.div 
+                    className="mt-6 text-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.2, duration: 0.7 }}
+                  >
+                    <a href="#" className="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center">
+                      <QuestionMarkCircleIcon className="w-4 h-4 mr-1" />
+                      Questions? Contact support
+                    </a>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
+export default CartDetails; 

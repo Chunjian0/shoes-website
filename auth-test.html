@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>认证功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+        .success {
+            color: green;
+            margin-top: 5px;
+        }
+        .response {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>认证功能测试</h1>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="register">注册</div>
+        <div class="tab" data-tab="login">登录</div>
+        <div class="tab" data-tab="profile">用户资料</div>
+        <div class="tab" data-tab="password">修改密码</div>
+        <div class="tab" data-tab="session">会话管理</div>
+    </div>
+    
+    <div id="register" class="tab-content active">
+        <div class="card">
+            <h2>用户注册</h2>
+            <div class="form-group">
+                <label for="register-name">姓名</label>
+                <input type="text" id="register-name" placeholder="请输入姓名">
+            </div>
+            <div class="form-group">
+                <label for="register-email">邮箱</label>
+                <input type="email" id="register-email" placeholder="请输入邮箱">
+            </div>
+            <div class="form-group">
+                <label for="register-password">密码</label>
+                <input type="password" id="register-password" placeholder="请输入密码">
+            </div>
+            <div class="form-group">
+                <label for="register-password-confirm">确认密码</label>
+                <input type="password" id="register-password-confirm" placeholder="请再次输入密码">
+            </div>
+            <button onclick="register()">注册</button>
+            <div id="register-message"></div>
+            <div id="register-response" class="response"></div>
+        </div>
+    </div>
+    
+    <div id="login" class="tab-content">
+        <div class="card">
+            <h2>用户登录</h2>
+            <div class="form-group">
+                <label for="login-email">邮箱</label>
+                <input type="email" id="login-email" placeholder="请输入邮箱">
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" placeholder="请输入密码">
+            </div>
+            <button onclick="login()">登录</button>
+            <div id="login-message"></div>
+            <div id="login-response" class="response"></div>
+        </div>
+    </div>
+    
+    <div id="profile" class="tab-content">
+        <div class="card">
+            <h2>用户资料</h2>
+            <button onclick="getProfile()">获取用户资料</button>
+            <div id="profile-data"></div>
+            <div id="profile-response" class="response"></div>
+            
+            <h3 class="mt-4">更新用户资料</h3>
+            <div class="form-group">
+                <label for="profile-name">姓名</label>
+                <input type="text" id="profile-name" placeholder="请输入姓名">
+            </div>
+            <div class="form-group">
+                <label for="profile-phone">电话</label>
+                <input type="text" id="profile-phone" placeholder="请输入电话">
+            </div>
+            <div class="form-group">
+                <label for="profile-address">地址</label>
+                <input type="text" id="profile-address" placeholder="请输入地址">
+            </div>
+            <button onclick="updateProfile()">更新资料</button>
+            <div id="update-profile-message"></div>
+            <div id="update-profile-response" class="response"></div>
+        </div>
+    </div>
+    
+    <div id="password" class="tab-content">
+        <div class="card">
+            <h2>修改密码</h2>
+            <div class="form-group">
+                <label for="current-password">当前密码</label>
+                <input type="password" id="current-password" placeholder="请输入当前密码">
+            </div>
+            <div class="form-group">
+                <label for="new-password">新密码</label>
+                <input type="password" id="new-password" placeholder="请输入新密码">
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">确认新密码</label>
+                <input type="password" id="confirm-password" placeholder="请再次输入新密码">
+            </div>
+            <button onclick="changePassword()">修改密码</button>
+            <div id="password-message"></div>
+            <div id="password-response" class="response"></div>
+        </div>
+    </div>
+    
+    <div id="session" class="tab-content">
+        <div class="card">
+            <h2>会话管理</h2>
+            <button onclick="checkSession()">检查会话</button>
+            <div id="check-session-message"></div>
+            <div id="check-session-response" class="response"></div>
+            
+            <button class="mt-3" onclick="pingSession()">Ping会话</button>
+            <div id="ping-session-message"></div>
+            <div id="ping-session-response" class="response"></div>
+            
+            <button class="mt-3" onclick="logout()">退出登录</button>
+            <div id="logout-message"></div>
+            <div id="logout-response" class="response"></div>
+        </div>
+    </div>
+    
+    <script>
+        // API基础URL
+        const baseUrl = '/api';
+        
+        // 存储认证令牌
+        let authToken = localStorage.getItem('authToken');
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置标签页切换
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 移除所有活动标签和内容
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // 激活当前标签和内容
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // 如果有认证令牌，尝试获取用户资料
+            if (authToken) {
+                getProfile();
+            }
+        });
+        
+        // API请求函数
+        async function apiRequest(endpoint, method = 'GET', data = null) {
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                };
+                
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+                
+                const options = {
+                    method,
+                    headers
+                };
+                
+                if (data && (method === 'POST' || method === 'PUT')) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`${baseUrl}${endpoint}`, options);
+                const result = await response.json();
+                
+                return {
+                    status: response.status,
+                    data: result
+                };
+            } catch (error) {
+                console.error('API请求失败:', error);
+                return {
+                    status: 500,
+                    data: { message: error.message }
+                };
+            }
+        }
+        
+        // 显示消息
+        function showMessage(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.innerText = message;
+            element.className = isError ? 'error' : 'success';
+        }
+        
+        // 显示响应
+        function showResponse(elementId, response) {
+            const element = document.getElementById(elementId);
+            element.innerText = JSON.stringify(response, null, 2);
+        }
+        
+        // 注册函数
+        async function register() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const passwordConfirmation = document.getElementById('register-password-confirm').value;
+            
+            if (!name || !email || !password || !passwordConfirmation) {
+                showMessage('register-message', '请填写所有字段', true);
+                return;
+            }
+            
+            if (password !== passwordConfirmation) {
+                showMessage('register-message', '两次输入的密码不一致', true);
+                return;
+            }
+            
+            const data = {
+                name,
+                email,
+                password,
+                password_confirmation: passwordConfirmation
+            };
+            
+            const response = await apiRequest('/register', 'POST', data);
+            showResponse('register-response', response);
+            
+            if (response.status === 200) {
+                showMessage('register-message', '注册成功！');
+                
+                // 保存token
+                authToken = response.data.token;
+                localStorage.setItem('authToken', authToken);
+                
+                // 切换到用户资料页面
+                document.querySelector('.tab[data-tab="profile"]').click();
+                
+                // 获取用户资料
+                getProfile();
+            } else {
+                showMessage('register-message', response.data.message || '注册失败，请重试', true);
+            }
+        }
+        
+        // 登录函数
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showMessage('login-message', '请填写所有字段', true);
+                return;
+            }
+            
+            const data = { email, password };
+            
+            const response = await apiRequest('/login', 'POST', data);
+            showResponse('login-response', response);
+            
+            if (response.status === 200) {
+                showMessage('login-message', '登录成功！');
+                
+                // 保存token
+                authToken = response.data.token;
+                localStorage.setItem('authToken', authToken);
+                
+                // 切换到用户资料页面
+                document.querySelector('.tab[data-tab="profile"]').click();
+                
+                // 获取用户资料
+                getProfile();
+            } else {
+                showMessage('login-message', response.data.message || '登录失败，请重试', true);
+            }
+        }
+        
+        // 获取用户资料
+        async function getProfile() {
+            if (!authToken) {
+                showMessage('profile-data', '请先登录', true);
+                return;
+            }
+            
+            const response = await apiRequest('/user/profile', 'GET');
+            showResponse('profile-response', response);
+            
+            if (response.status === 200) {
+                const user = response.data.user;
+                document.getElementById('profile-name').value = user.name || '';
+                document.getElementById('profile-phone').value = user.phone || '';
+                document.getElementById('profile-address').value = user.address || '';
+                
+                // 显示用户资料
+                const profileData = document.getElementById('profile-data');
+                profileData.innerHTML = `
+                    <div class="success">获取用户资料成功！</div>
+                    <div style="margin-top: 10px;">
+                        <strong>ID:</strong> ${user.id}<br>
+                        <strong>姓名:</strong> ${user.name}<br>
+                        <strong>邮箱:</strong> ${user.email}<br>
+                        <strong>电话:</strong> ${user.phone || '未设置'}<br>
+                        <strong>地址:</strong> ${user.address || '未设置'}<br>
+                    </div>
+                `;
+            } else if (response.status === 401) {
+                // 未授权，清除token并提示登录
+                authToken = null;
+                localStorage.removeItem('authToken');
+                showMessage('profile-data', '会话已过期，请重新登录', true);
+            } else {
+                showMessage('profile-data', response.data.message || '获取用户资料失败', true);
+            }
+        }
+        
+        // 更新用户资料
+        async function updateProfile() {
+            if (!authToken) {
+                showMessage('update-profile-message', '请先登录', true);
+                return;
+            }
+            
+            const name = document.getElementById('profile-name').value;
+            const phone = document.getElementById('profile-phone').value;
+            const address = document.getElementById('profile-address').value;
+            
+            if (!name) {
+                showMessage('update-profile-message', '姓名不能为空', true);
+                return;
+            }
+            
+            const data = { name, phone, address };
+            
+            const response = await apiRequest('/user/profile', 'PUT', data);
+            showResponse('update-profile-response', response);
+            
+            if (response.status === 200) {
+                showMessage('update-profile-message', '更新资料成功！');
+                // 重新获取用户资料
+                getProfile();
+            } else if (response.status === 401) {
+                // 未授权，清除token并提示登录
+                authToken = null;
+                localStorage.removeItem('authToken');
+                showMessage('update-profile-message', '会话已过期，请重新登录', true);
+            } else {
+                showMessage('update-profile-message', response.data.message || '更新资料失败', true);
+            }
+        }
+        
+        // 修改密码
+        async function changePassword() {
+            if (!authToken) {
+                showMessage('password-message', '请先登录', true);
+                return;
+            }
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showMessage('password-message', '请填写所有字段', true);
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showMessage('password-message', '两次输入的新密码不一致', true);
+                return;
+            }
+            
+            const data = {
+                current_password: currentPassword,
+                password: newPassword,
+                password_confirmation: confirmPassword
+            };
+            
+            const response = await apiRequest('/user/password', 'PUT', data);
+            showResponse('password-response', response);
+            
+            if (response.status === 200) {
+                showMessage('password-message', '密码修改成功！');
+                // 清除输入框
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-password').value = '';
+            } else if (response.status === 401) {
+                // 未授权或当前密码错误
+                showMessage('password-message', response.data.message || '当前密码错误', true);
+            } else {
+                showMessage('password-message', response.data.message || '修改密码失败', true);
+            }
+        }
+        
+        // 检查会话
+        async function checkSession() {
+            if (!authToken) {
+                showMessage('check-session-message', '请先登录', true);
+                return;
+            }
+            
+            const response = await apiRequest('/auth/check', 'GET');
+            showResponse('check-session-response', response);
+            
+            if (response.status === 200) {
+                showMessage('check-session-message', '会话有效');
+            } else if (response.status === 401) {
+                // 未授权，清除token并提示登录
+                authToken = null;
+                localStorage.removeItem('authToken');
+                showMessage('check-session-message', '会话已过期，请重新登录', true);
+            } else {
+                showMessage('check-session-message', response.data.message || '检查会话失败', true);
+            }
+        }
+        
+        // Ping会话
+        async function pingSession() {
+            if (!authToken) {
+                showMessage('ping-session-message', '请先登录', true);
+                return;
+            }
+            
+            const response = await apiRequest('/auth/ping', 'GET');
+            showResponse('ping-session-response', response);
+            
+            if (response.status === 200) {
+                showMessage('ping-session-message', '会话活跃');
+            } else if (response.status === 401) {
+                // 未授权，清除token并提示登录
+                authToken = null;
+                localStorage.removeItem('authToken');
+                showMessage('ping-session-message', '会话已过期，请重新登录', true);
+            } else {
+                showMessage('ping-session-message', response.data.message || 'Ping会话失败', true);
+            }
+        }
+        
+        // 退出登录
+        async function logout() {
+            if (!authToken) {
+                showMessage('logout-message', '您尚未登录', true);
+                return;
+            }
+            
+            const response = await apiRequest('/logout', 'POST');
+            showResponse('logout-response', response);
+            
+            // 不管结果如何，都清除token
+            authToken = null;
+            localStorage.removeItem('authToken');
+            
+            if (response.status === 200) {
+                showMessage('logout-message', '退出登录成功！');
+                // 切换到登录页面
+                document.querySelector('.tab[data-tab="login"]').click();
+            } else {
+                showMessage('logout-message', response.data.message || '退出登录失败，但已清除本地会话', true);
+            }
+        }
+    </script>
+</body>
+</html> 

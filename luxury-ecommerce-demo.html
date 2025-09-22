@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUXIOR - Luxury Experience</title>
+    
+    <!-- 高级字体引入 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Raleway:wght@200;300;400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=Italiana&display=swap" rel="stylesheet">
+    
+    <!-- 高级动画库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/MotionPathPlugin.min.js"></script>
+    <script src="https://unpkg.com/split-type"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.0.19/dist/lenis.min.js"></script>
+    
+    <style>
+        :root {
+            /* 精致高级配色方案 */
+            --deep-black: #0A0A0A;
+            --rich-black: #121212;
+            --soft-black: #1A1A1A;
+            --luxury-gold: #D4AF37;
+            --pale-gold: #F8E7B9;
+            --cream: #FAF9F6;
+            --silver: #C0C0C0;
+            --charcoal: #303030;
+            
+            /* 辅助色系 */
+            --burgundy: #800020;
+            --emerald: #046307;
+            --sapphire: #082567;
+            --amethyst: #5D3FD3;
+            
+            /* 高光和阴影 */
+            --highlight: rgba(255, 255, 255, 0.8);
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.2);
+            --shadow-dark: rgba(0, 0, 0, 0.3);
+            
+            /* 间距系统 */
+            --space-3xs: 0.25rem;
+            --space-2xs: 0.5rem;
+            --space-xs: 0.75rem;
+            --space-sm: 1rem;
+            --space-md: 1.5rem;
+            --space-lg: 2rem;
+            --space-xl: 3rem;
+            --space-2xl: 4rem;
+            --space-3xl: 6rem;
+            
+            /* 过渡曲线 */
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --ease-in-out-quint: cubic-bezier(0.86, 0, 0.07, 1);
+            --ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--deep-black);
+            color: var(--cream);
+            font-family: 'Raleway', sans-serif;
+            font-weight: 300;
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overscroll-behavior: none;
+        }
+
+        ::selection {
+            background-color: var(--luxury-gold);
+            color: var(--deep-black);
+        }
+        
+        h1, h2, h3, h4, h5 {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            line-height: 1.2;
+            color: white;
+        }
+        
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        
+        h2 {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            letter-spacing: -0.005em;
+        }
+        
+        h3 {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 500;
+        }
+        
+        p {
+            font-size: clamp(1rem, 1.2vw, 1.2rem);
+            letter-spacing: 0.01em;
+            line-height: 1.8;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: all 0.4s var(--ease-out-expo);
+        }
+        
+        img {
+            max-width: 100%;
+            display: block;
+        }
+        
+        button {
+            border: none;
+            background: none;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+        }
+
+        .hidden-overflow {
+            overflow: hidden;
+        }
+
+        .transform-container {
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 文本渐现动画类 */
+        .split-text {
+            overflow: hidden;
+        }
+
+        .split-text .char {
+            transform: translateY(100%);
+            transition: transform 0.5s var(--ease-out-expo);
+            display: inline-block;
+            opacity: 0;
+        }
+
+        .split-text.revealed .char {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* 块级渐显动画类 */
+        .fade-in-element {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+        }
+
+        .fade-in-element.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 图片放大显示动画类 */
+        .scale-in-image {
+            clip-path: inset(0 0 100% 0);
+            transition: clip-path 1.2s var(--ease-in-out-quint);
+        }
+
+        .scale-in-image.revealed {
+            clip-path: inset(0);
+        }
+
+        .image-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-wrapper img {
+            transition: transform 1.2s var(--ease-out-expo);
+        }
+
+        .image-wrapper:hover img {
+            transform: scale(1.05);
+        }
+
+        /* 噪点背景遮罩 */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.03;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJub2lzZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+PGZlVHVyYnVsZW5jZSBiYXNlRnJlcXVlbmN5PSIwLjIiIHN0aXRjaFRpbGVzPSJzdGl0Y2giIHR5cGU9ImZyYWN0YWxOb2lzZSIgbnVtT2N0YXZlcz0iNCIgc2VlZD0iMjMiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNub2lzZSkiIG9wYWNpdHk9IjAuNCIvPjwvc3ZnPg==');
+        }
+
+        /* 自定义鼠标跟随效果 */
+        .cursor-follow {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--luxury-gold);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 999;
+            pointer-events: none;
+            mix-blend-mode: difference;
+            opacity: 0;
+            transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+        }
+
+        a:hover ~ .cursor-follow,
+        button:hover ~ .cursor-follow {
+            width: 48px;
+            height: 48px;
+            opacity: 1;
+        }
+
+        /* 滚动条设计 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--soft-black);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--luxury-gold);
+            border-radius: 3px;
+        }
+
+        /* 页面加载动画 */
+        body {
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
+        
+        body.loaded {
+            opacity: 1;
+        }
+
+        /* 响应式设计基础 */
+        @media (max-width: 1200px) {
+            :root {
+                --space-3xl: 4rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --space-2xl: 3rem;
+                --space-xl: 2rem;
+            }
+        }
+    </style>
+</head>
+<body data-lenis-prevent-wheel>
+    <div class="noise-overlay"></div>
+    <div class="cursor-follow"></div>
+    
+    <header id="main-header">
+        <!-- Header将在下一步实现 -->
+    </header>
+
+    <main>
+        <section id="hero-banner">
+            <!-- Hero轮播将在下一步实现 -->
+        </section>
+
+        <section id="featured-products">
+            <!-- 特色商品区域将在之后实现 -->
+        </section>
+
+        <section id="product-showcase">
+            <!-- 商品展示区域将在之后实现 -->
+        </section>
+
+        <section id="product-details">
+            <!-- 商品详情区域将在之后实现 -->
+        </section>
+    </main>
+
+    <footer id="main-footer">
+        <!-- Footer将在之后实现 -->
+    </footer>
+
+    <script>
+        // 初始化平滑滚动
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            direction: 'vertical',
+            gestureDirection: 'vertical',
+            smooth: true,
+            mouseMultiplier: 1,
+            smoothTouch: false,
+            touchMultiplier: 2,
+            infinite: false,
+        });
+        
+        // 将lenis与requestAnimationFrame连接
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        
+        requestAnimationFrame(raf);
+        
+        // 初始化GSAP
+        gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, MotionPathPlugin);
+        
+        // 页面加载动画
+        window.addEventListener('load', () => {
+            document.body.classList.add('loaded');
+            
+            const loadTimeline = gsap.timeline();
+            
+            loadTimeline
+                .to('.noise-overlay', {
+                    opacity: 0.03,
+                    duration: 1,
+                    ease: 'power3.out'
+                })
+                .from('body', {
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'power2.inOut'
+                }, 0);
+        });
+        
+        // 自定义鼠标跟随效果
+        const cursor = document.querySelector('.cursor-follow');
+        
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, {
+                x: e.clientX,
+                y: e.clientY,
+                duration: 0.6,
+                ease: 'power3.out'
+            });
+        });
+        
+        // 文本分割及动画
+        function initTextAnimation() {
+            const splitTexts = document.querySelectorAll('.animate-text');
+            
+            splitTexts.forEach(text => {
+                new SplitType(text, { types: 'chars, words, lines' });
+                
+                ScrollTrigger.create({
+                    trigger: text,
+                    start: 'top 85%',
+                    onEnter: () => {
+                        text.classList.add('revealed');
+                    }
+                });
+            });
+        }
+        
+        // 元素渐入动画
+        function initFadeInAnimation() {
+            const fadeElements = document.querySelectorAll('.fade-in-element');
+            
+            fadeElements.forEach((el, index) => {
+                ScrollTrigger.create({
+                    trigger: el,
+                    start: 'top 90%',
+                    onEnter: () => {
+                        gsap.to(el, {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.8,
+                            delay: index * 0.1,
+                            ease: 'power3.out'
+                        });
+                    }
+                });
+            });
+        }
+        
+        // 图片显示动画
+        function initImageAnimation() {
+            const imageWrappers = document.querySelectorAll('.scale-in-image');
+            
+            imageWrappers.forEach(wrapper => {
+                ScrollTrigger.create({
+                    trigger: wrapper,
+                    start: 'top 85%',
+                    onEnter: () => {
+                        wrapper.classList.add('revealed');
+                    }
+                });
+            });
+        }
+        
+        // 页面滚动时初始化各种动画
+        function initScrollAnimations() {
+            initTextAnimation();
+            initFadeInAnimation();
+            initImageAnimation();
+        }
+        
+        // 文档加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initScrollAnimations();
+        });
+    </script>
+</body>
+</html> 

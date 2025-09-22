@@ -1,0 +1,142 @@
+import api from './api';
+import { HomepageSettings, LayoutTemplate } from '../types/homepage';
+import { formatApiDataToSettings, getDefaultSettings } from '../formatters/homepageFormatter';
+
+// 本地存储缓存键
+const CACHE_KEY_HOMEPAGE = 'homepage_data';
+// 缓存过期时间（5分钟）
+const CACHE_DURATION = 5 * 60 * 1000;
+
+/**
+ * 从API获取首页设置并缓存
+ */
+export const fetchAndCacheHomepageData = async (forceRefresh = false): Promise<HomepageSettings> => {
+  try {
+    // 如果非强制刷新，尝试从本地存储缓存获取
+    if (!forceRefresh) {
+      const cachedData = localStorage.getItem(CACHE_KEY_HOMEPAGE);
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        const now = new Date().getTime();
+        
+        // 检查缓存是否过期
+        if (now - timestamp < CACHE_DURATION) {
+          console.log('Using cached homepage data');
+          return formatApiDataToSettings(data);
+        }
+      }
+    }
+
+    console.log('Fetching fresh homepage data');
+
+    // API并行请求
+    const [settingsResponse, bannersResponse, featuredResponse, newArrivalsResponse, salesResponse] = 
+      await Promise.all([
+        api.get('/api/homepage/settings'),
+        api.get('/api/homepage/banners'),
+        api.get('/api/homepage/featured-templates'),
+        api.get('/api/homepage/new-arrival-templates'),
+        api.get('/api/homepage/sale-templates')
+      ]);
+
+    // 验证响应格式
+    const validateResponse = (response: any) => {
+      return response && response.data && (response.success === true || response.success === undefined);
+    };
+
+    // 提取数据
+    const extractData = (response: any) => {
+      if (validateResponse(response)) {
+        return response.data;
+      }
+      return null;
+    };
+
+    // 从各个响应中提取数据
+    const settings = extractData(settingsResponse);
+    const banners = extractData(bannersResponse);
+    const featuredTemplates = extractData(featuredResponse);
+    const newArrivalTemplates = extractData(newArrivalsResponse);
+    const saleTemplates = extractData(salesResponse);
+
+    // 组合完整数据
+    const combinedData = {
+      settings: settings || {},
+      banners: banners || [],
+      featured_templates: featuredTemplates || [],
+      new_arrival_templates: newArrivalTemplates || [],
+      sale_templates: saleTemplates || []
+    };
+
+    // 缓存数据到本地存储
+    localStorage.setItem(CACHE_KEY_HOMEPAGE, JSON.stringify({
+      data: combinedData,
+      timestamp: new Date().getTime()
+    }));
+
+    // 格式化并返回数据
+    return formatApiDataToSettings(combinedData);
+  } catch (error) {
+    console.error('Error fetching homepage data:', error);
+    
+    // 尝试从缓存获取旧数据
+    const cachedData = localStorage.getItem(CACHE_KEY_HOMEPAGE);
+    if (cachedData) {
+      try {
+        const { data } = JSON.parse(cachedData);
+        return formatApiDataToSettings(data);
+      } catch (cacheError) {
+        console.error('Error parsing cached data:', cacheError);
+      }
+    }
+    
+    // 如果没有缓存或解析缓存失败，返回默认设置
+    return getDefaultSettings();
+  }
+};
+
+/**
+ * 检查是否使用模拟数据（从localStorage中读取标志）
+ */
+export const isMockDataActive = (): boolean => {
+  return localStorage.getItem('use_mock_data') === 'true';
+};
+
+/**
+ * 设置是否使用模拟数据
+ */
+export const setMockDataActive = (active: boolean): void => {
+  localStorage.setItem('use_mock_data', active ? 'true' : 'false');
+};
+
+/**
+ * 清除首页数据缓存
+ */
+export const clearHomepageCache = (): void => {
+  localStorage.removeItem(CACHE_KEY_HOMEPAGE);
+  console.log('Homepage cache cleared');
+};
+
+/**
+ * 获取首页当前使用的模板
+ */
+export const getCurrentTemplate = async (): Promise<LayoutTemplate> => {
+  try {
+    const settings = await fetchAndCacheHomepageData();
+    return settings.active_template || LayoutTemplate.MODERN;
+  } catch (error) {
+    console.error('Error getting current template:', error);
+    return LayoutTemplate.MODERN;
+  }
+};
+
+// 导出所有服务
+const homepageService = {
+  fetchAndCacheHomepageData,
+  isMockDataActive,
+  setMockDataActive,
+  clearHomepageCache,
+  getCurrentTemplate
+};
+
+export default homepageService;

@@ -1,0 +1,445 @@
+===== 测试开始于 2025-04-04 13:07:36 =====
+步骤1: 获取CSRF令牌 - http://localhost:8000/sanctum/csrf-cookie
+cURL错误 (CSRF): Failed to connect to localhost port 8000 after 2234 ms: Couldn't connect to server
+===== 测试开始于 2025-04-04 13:08:26 =====
+步骤1: 获取CSRF令牌 - http://localhost:2268/sanctum/csrf-cookie
+CSRF请求状态码: 204
+步骤2: 添加商品到购物车
+API URL: http://localhost:2268/api/cart
+请求数据: {"product_id":5,"quantity":1,"size":"40","color":"Black"}
+状态码: 500
+响应时间: 0.833511 秒
+响应头: Array
+(
+    [url] => http://localhost:2268/api/cart
+    [content_type] => application/json
+    [http_code] => 500
+    [header_size] => 272
+    [request_size] => 941
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 0.833511
+    [namelookup_time] => 2.7E-5
+    [connect_time] => 0.227014
+    [pretransfer_time] => 0.227437
+    [size_upload] => 57
+    [size_download] => 13961
+    [speed_download] => 16749
+    [speed_upload] => 68
+    [download_content_length] => -1
+    [upload_content_length] => 57
+    [starttransfer_time] => 0.828609
+    [redirect_time] => 0
+    [redirect_url] => 
+    [primary_ip] => 127.0.0.1
+    [certinfo] => Array
+        (
+        )
+
+    [primary_port] => 2268
+    [local_ip] => 127.0.0.1
+    [local_port] => 56838
+    [http_version] => 2
+    [protocol] => 1
+    [ssl_verifyresult] => 0
+    [scheme] => HTTP
+    [appconnect_time_us] => 0
+    [connect_time_us] => 227014
+    [namelookup_time_us] => 27
+    [pretransfer_time_us] => 227437
+    [redirect_time_us] => 0
+    [starttransfer_time_us] => 828609
+    [total_time_us] => 833511
+)
+
+响应内容: {
+    "message": "Session store not set on request.",
+    "exception": "RuntimeException",
+    "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Request.php",
+    "line": 560,
+    "trace": [
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\app\\Http\\Controllers\\Api\\CartController.php",
+            "line": 123,
+            "function": "session",
+            "class": "Illuminate\\Http\\Request",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Controller.php",
+            "line": 54,
+            "function": "store",
+            "class": "App\\Http\\Controllers\\Api\\CartController",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php",
+            "line": 43,
+            "function": "callAction",
+            "class": "Illuminate\\Routing\\Controller",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php",
+            "line": 260,
+            "function": "dispatch",
+            "class": "Illuminate\\Routing\\ControllerDispatcher",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php",
+            "line": 205,
+            "function": "runController",
+            "class": "Illuminate\\Routing\\Route",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+            "line": 806,
+            "function": "run",
+            "class": "Illuminate\\Routing\\Route",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 144,
+            "function": "Illuminate\\Routing\\{closure}",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php",
+            "line": 50,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\ThrottleRequests.php",
+            "line": 159,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\ThrottleRequests.php",
+            "line": 135,
+            "function": "handleRequest",
+            "class": "Illuminate\\Routing\\Middleware\\ThrottleRequests",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\ThrottleRequests.php",
+            "line": 87,
+            "function": "handleRequestUsingNamedLimiter",
+            "class": "Illuminate\\Routing\\Middleware\\ThrottleRequests",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Illuminate\\Routing\\Middleware\\ThrottleRequests",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\app\\Http\\Middleware\\AuthDebugMiddleware.php",
+            "line": 37,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "App\\Http\\Middleware\\AuthDebugMiddleware",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 119,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+            "line": 807,
+            "function": "then",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+            "line": 784,
+            "function": "runRouteWithinStack",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+            "line": 748,
+            "function": "runRoute",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+            "line": 737,
+            "function": "dispatchToRoute",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php",
+            "line": 200,
+            "function": "dispatch",
+            "class": "Illuminate\\Routing\\Router",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 144,
+            "function": "Illuminate\\Foundation\\Http\\{closure}",
+            "class": "Illuminate\\Foundation\\Http\\Kernel",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\livewire\\livewire\\src\\Features\\SupportDisablingBackButtonCache\\DisableBackButtonCacheMiddleware.php",
+            "line": 19,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Livewire\\Features\\SupportDisablingBackButtonCache\\DisableBackButtonCacheMiddleware",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php",
+            "line": 21,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php",
+            "line": 31,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php",
+            "line": 21,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php",
+            "line": 40,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\TrimStrings",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php",
+            "line": 27,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php",
+            "line": 99,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php",
+            "line": 62,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Illuminate\\Http\\Middleware\\HandleCors",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php",
+            "line": 39,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 183,
+            "function": "handle",
+            "class": "Illuminate\\Http\\Middleware\\TrustProxies",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+            "line": 119,
+            "function": "Illuminate\\Pipeline\\{closure}",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php",
+            "line": 175,
+            "function": "then",
+            "class": "Illuminate\\Pipeline\\Pipeline",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php",
+            "line": 144,
+            "function": "sendRequestThroughRouter",
+            "class": "Illuminate\\Foundation\\Http\\Kernel",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\public\\index.php",
+            "line": 52,
+            "function": "handle",
+            "class": "Illuminate\\Foundation\\Http\\Kernel",
+            "type": "->"
+        },
+        {
+            "file": "C:\\Apache24\\htdocs\\Laravel\\optic-system\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php",
+            "line": 16,
+            "function": "require_once"
+        }
+    ]
+}
+
+===== Laravel日志内容 =====
+2025-04-04 21:08:28 - CartController.store method called
+2025-04-04 21:08:28 - Request data: {"product_id":5,"quantity":1,"size":"40","color":"Black"}
+===== 测试结束于 2025-04-04 13:08:28 =====
+
+===== 测试开始于 2025-04-04 13:10:06 =====
+步骤1: 获取初始Cookie
+首页请求状态码: 404
+步骤2: 获取CSRF令牌
+CSRF请求状态码: 204
+Cookie文件未创建
+步骤3: 添加商品到购物车
+API URL: http://localhost:2268/api/cart
+请求数据: {"product_id":5,"quantity":1,"size":"40","color":"Black"}
+状态码: 200
+响应时间: 0.933695 秒
+响应头信息:
+Array
+(
+    [url] => http://localhost:2268/api/cart
+    [content_type] => application/json
+    [http_code] => 200
+    [header_size] => 253
+    [request_size] => 941
+    [filetime] => -1
+    [ssl_verify_result] => 0
+    [redirect_count] => 0
+    [total_time] => 0.933695
+    [namelookup_time] => 0.000396
+    [connect_time] => 0.205434
+    [pretransfer_time] => 0.206697
+    [size_upload] => 57
+    [size_download] => 72
+    [speed_download] => 77
+    [speed_upload] => 61
+    [download_content_length] => -1
+    [upload_content_length] => 57
+    [starttransfer_time] => 0.928735
+    [redirect_time] => 0
+    [redirect_url] => 
+    [primary_ip] => 127.0.0.1
+    [certinfo] => Array
+        (
+        )
+
+    [primary_port] => 2268
+    [local_ip] => 127.0.0.1
+    [local_port] => 57271
+    [http_version] => 2
+    [protocol] => 1
+    [ssl_verifyresult] => 0
+    [scheme] => HTTP
+    [appconnect_time_us] => 0
+    [connect_time_us] => 205434
+    [namelookup_time_us] => 396
+    [pretransfer_time_us] => 206697
+    [redirect_time_us] => 0
+    [starttransfer_time_us] => 928735
+    [total_time_us] => 933695
+)
+
+响应内容: {"success":true,"message":"Cart is empty","data":{"items":[],"total":0}}
+
+===== Laravel购物车日志内容 =====
+2025-04-04 21:08:28 - CartController.store method called
+2025-04-04 21:08:28 - Request data: {"product_id":5,"quantity":1,"size":"40","color":"Black"}
+2025-04-04 21:10:09 - CartController.store method called
+2025-04-04 21:10:09 - Request data: {"product_id":5,"quantity":1,"size":"40","color":"Black"}
+2025-04-04 21:10:09 - No session available, using random ID: 7674a068-c3dd-43e3-bca5-ece79c53e2ab
+2025-04-04 21:10:09 - Processing specifications: {"size":"40","color":"Black"}
+2025-04-04 21:10:09 - Creating guest cart with session: 7674a068-c3dd-43e3-bca5-ece79c53e2ab
+2025-04-04 21:10:09 - Guest cart created/found with ID: 5
+2025-04-04 21:10:09 - Looking for product with ID: 5
+2025-04-04 21:10:09 - Product found: Zeiss1.67Non -spherical lens, Price: 150.00
+2025-04-04 21:10:09 - Checking for existing cart items, Cart ID: 5, Product ID: 5
+2025-04-04 21:10:09 - Found 0 matching items
+2025-04-04 21:10:09 - Creating new cart item
+2025-04-04 21:10:09 - New item data: {"cart_id":5,"product_id":5,"quantity":1,"price":"150.00","specifications":{"size":"40","color":"Black"}}
+2025-04-04 21:10:09 - Creation result: Success, ID: 1
+2025-04-04 21:10:09 - Operation successful, returning updated cart
+===== 测试结束于 2025-04-04 13:10:09 =====
+

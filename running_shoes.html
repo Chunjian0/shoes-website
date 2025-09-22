@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>疾风跑鞋 - 感受速度</title>
+    <style>
+        /* --- 全局样式与重置 --- */
+        :root {
+            --primary-color: #007bff; /* 主题蓝 */
+            --secondary-color: #ffc107; /* 辅助黄 */
+            --dark-color: #343a40; /* 深灰 */
+            --light-color: #f8f9fa; /* 浅灰 */
+            --text-color: #212529; /* 主要文本颜色 */
+            --gray-text-color: #6c757d; /* 次要文本颜色 */
+            --transition-speed: 0.3s;
+            --wave-height: 80px; /* 波浪分隔符高度 */
+            /* scroll-behavior: smooth;  JS will handle smooth scroll */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #fff;
+            overflow-x: hidden; /* 防止水平滚动 */
+        }
+
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--gray-text-color);
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color var(--transition-speed) ease;
+        }
+
+        a:hover {
+            color: darken(var(--primary-color), 10%);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.8rem;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            border: none;
+            border-radius: 50px; /* 圆角按钮 */
+            cursor: pointer;
+            transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: darken(var(--primary-color), 10%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .section-title::after { /* 标题下划线装饰 */
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background-color: var(--primary-color);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        /* --- 动画效果 --- */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px); /* Start slightly lower */
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Ken Burns Effect Keyframes */
+        @keyframes kenBurns {
+            0% {
+                transform: scale(1.1) translate(0, 0);
+            }
+            50% {
+                 transform: scale(1.15) translate(-5px, 5px);
+            }
+            100% {
+                transform: scale(1.1) translate(0, 0);
+            }
+        }
+
+        /* --- 导航栏 --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px); /* 毛玻璃效果 */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            z-index: 1000;
+            transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+        }
+
+        .navbar.scrolled {
+            background-color: rgba(255, 255, 255, 1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+        }
+
+        .nav-links li {
+            margin-left: 25px;
+        }
+
+        .nav-links a {
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: color var(--transition-speed) ease;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        .nav-links a::after { /* 链接下划线动画 */
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transition: width var(--transition-speed) ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary-color);
+        }
+         .nav-links a:hover::after, .nav-links a.active::after {
+            width: 100%;
+        }
+
+        /* --- 英雄区域 --- */
+        #hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://via.placeholder.com/1920x1080/eee/aaa?text=Running+Shoe+Hero') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden; /* 确保子元素动画不溢出 */
+            padding-bottom: var(--wave-height); /* 为波浪留出空间 */
+            margin-bottom: calc(0px - var(--wave-height)); /* 负 margin 拉回下方内容 */
+        }
+
+        #hero::before { /* 添加视差效果层 & Ken Burns */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* background: url('https://via.placeholder.com/1920x1080/eee/aaa?text=Running+Shoe+Hero+Dynamic') no-repeat center center/cover; */
+            background: url('https://source.unsplash.com/1920x1080/?dynamic,running,speed') no-repeat center center/cover;
+            background-attachment: fixed; /* 关键：固定背景实现视差 (桌面) */
+            z-index: -1; /* 置于内容之后 */
+            filter: brightness(0.5); /* 保持暗度 */
+            animation: kenBurns 30s infinite ease-in-out; /* 应用 Ken Burns 动画 */
+            will-change: transform; /* 性能优化提示 */
+        }
+
+        .hero-content {
+            max-width: 700px;
+            animation: fadeInUp 1s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            font-weight: 700;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+        }
+
+        /* --- SVG 波浪分隔符 --- */
+        .wave-separator {
+            position: relative;
+            bottom: 0; /* Changed from bottom to work with negative margin */
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            transform: rotate(180deg); /* 翻转波浪方向 */
+            z-index: 5; /* 确保在 Hero 内容之上，但在下一部分之下 */
+        }
+
+        .wave-separator svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px); /* Slight oversize to prevent gaps */
+            height: var(--wave-height); /* 使用变量控制高度 */
+        }
+
+        .wave-separator .shape-fill {
+            fill: var(--light-color); /* 波浪颜色应匹配下方区域背景色 */
+        }
+
+        /* --- 特性区域 --- */
+        #features {
+            background-color: var(--light-color);
+            padding-top: calc(80px + var(--wave-height)); /* 增加上边距以补偿波浪 */
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .feature-item {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-item:hover .feature-icon { /* Animate icon on item hover */
+            transform: scale(1.2) rotate(10deg);
+            filter: brightness(1.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            /* 可以用 SVG 或 FontAwesome 图标代替 */
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform var(--transition-speed) cubic-bezier(0.68, -0.55, 0.27, 1.55), filter var(--transition-speed) ease; /* 添加弹性过渡 */
+        }
+
+        .feature-item h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        /* --- 产品展示 --- */
+        #showcase {
+            background-color: #fff;
+        }
+
+        .showcase-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .showcase-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .showcase-image {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+            perspective: 1000px; /* 3D 效果 */
+        }
+
+        .showcase-image img {
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 平滑 3D 旋转 */
+            transform-style: preserve-3d;
+        }
+
+        .showcase-image img:hover {
+            transform: rotateY(15deg) rotateX(5deg) scale(1.05);
+        }
+
+        .showcase-text ul {
+            list-style: none; /* Remove default bullets */
+            padding-left: 0;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+        .showcase-text ul li {
+             padding-left: 25px;
+             position: relative;
+             margin-bottom: 8px;
+             color: var(--text-color); /* More prominent checkmarks */
+             font-weight: 500;
+        }
+         .showcase-text ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color); /* Make checkmark stand out */
+            font-weight: bold;
+         }
+
+        /* Color Selector Styles */
+        .color-selector {
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+         .color-selector span {
+            font-weight: 500;
+            color: var(--dark-color);
+            margin-right: 5px;
+         }
+
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            position: relative; /* For active indicator */
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
+        }
+
+        .color-swatch.active::after {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+
+        /* --- 用户评价 --- */
+        #testimonials {
+             background-color: var(--light-color);
+             position: relative;
+             overflow: hidden;
+             padding-bottom: 50px; /* Add padding for controls */
+        }
+        #testimonials::before { /* 添加背景纹理 */
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23dee2e6' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+             z-index: 0;
+        }
+
+        .testimonial-slider {
+            max-width: 800px;
+            margin: 50px auto 0;
+            position: relative; /* Needed for button positioning */
+            z-index: 1;
+            overflow: hidden; /* Crucial for slide effect */
+        }
+
+        .testimonial-track { /* New wrapper for testimonials */
+            display: flex;
+            transition: transform 0.5s ease-in-out; /* Slide transition */
+            will-change: transform;
+        }
+
+        .testimonial {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            flex: 0 0 100%; /* Each testimonial takes full width */
+            box-sizing: border-box; /* Include padding in width calculation */
+            opacity: 1; /* Ensure visible */
+            transform: scale(1); /* Reset any scaling */
+            margin: 0 15px; /* Add some margin between slides if desired */
+        }
+         .testimonial:first-child { margin-left: 0;}
+         .testimonial:last-child { margin-right: 0;}
+
+        .testimonial blockquote {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--gray-text-color);
+            margin-bottom: 15px;
+            position: relative;
+            padding: 0 20px;
+        }
+        .testimonial blockquote::before,
+        .testimonial blockquote::after {
+            content: '“';
+            position: absolute;
+            font-size: 3rem;
+            color: var(--primary-color);
+            opacity: 0.3;
+            line-height: 1;
+        }
+        .testimonial blockquote::before { top: -10px; left: -10px; }
+        .testimonial blockquote::after { content: '”'; bottom: -20px; right: -10px; }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-top: 15px;
+        }
+        .testimonial-author span {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: var(--gray-text-color);
+            margin-top: 3px;
+        }
+
+        .slider-controls {
+            text-align: center;
+            margin-top: 40px; /* Increased margin */
+        }
+
+        .slider-btn {
+            background: none;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            line-height: 36px; /* Center icon */
+        }
+
+        .slider-btn:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        /* --- CTA区域 --- */
+        #cta {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3); /* Gradient background */
+            color: #fff;
+            text-align: center;
+        }
+
+        #cta h2 {
+            color: #fff;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+        }
+
+        #cta p {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-cta {
+            background-color: var(--secondary-color);
+            color: var(--dark-color);
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .btn-cta:hover {
+            background-color: darken(var(--secondary-color), 10%);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5);
+        }
+
+        /* --- 页脚 --- */
+        footer {
+            background-color: var(--dark-color);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 40px 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        footer p {
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        footer a {
+            color: var(--secondary-color);
+        }
+        footer a:hover {
+             color: darken(var(--secondary-color), 10%);
+        }
+
+        /* --- 响应式设计 --- */
+        @media (max-width: 768px) {
+            .navbar .container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                margin-top: 15px;
+                padding-left: 0; /* Reset padding */
+            }
+            .nav-links li {
+                margin-left: 0;
+                margin-right: 15px; /* Add spacing between items */
+            }
+            .nav-links li:last-child {
+                margin-right: 0;
+            }
+
+            #hero {
+                 padding-bottom: 50px; /* Adjust wave height maybe */
+                 margin-bottom: -50px;
+                 background-attachment: scroll; /* Disable fixed on mobile */
+                 animation: none; /* Disable Ken Burns on mobile for performance */
+            }
+             #hero::before {
+                 background-attachment: scroll; /* Disable fixed on mobile */
+                 animation: none; /* Disable Ken Burns on mobile for performance */
+            }
+            .wave-separator svg {
+                 height: 50px; /* Smaller wave on mobile */
+            }
+            #features {
+                 padding-top: calc(60px + 50px); /* Adjust padding top */
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            .hero-content p {
+                font-size: 1rem;
+            }
+
+            .section {
+                padding: 60px 0;
+            }
+             .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr; /* Stack features */
+            }
+
+            .showcase-content {
+                flex-direction: column;
+            }
+             .showcase-image {
+                margin-top: 30px;
+             }
+            .showcase-image img:hover {
+                transform: none; /* Disable hover effect on touch */
+            }
+
+            .testimonial {
+                padding: 30px; /* Slightly less padding */
+                 margin: 0 10px; /* Adjust margin */
+            }
+
+            .testimonial blockquote {
+                 font-size: 0.95rem;
+            }
+
+            .color-selector {
+                 flex-wrap: wrap; /* Allow swatches to wrap */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 导航栏 -->
+    <nav class="navbar" id="main-nav">
+        <div class="container">
+            <a href="#" class="logo">疾风跑鞋</a>
+            <ul class="nav-links">
+                <li><a href="#hero" class="active">首页</a></li>
+                <li><a href="#features">特性</a></li>
+                <li><a href="#showcase">展示</a></li>
+                <li><a href="#testimonials">评价</a></li>
+                <li><a href="#cta">购买</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 英雄区域 -->
+    <section id="hero">
+        <div class="hero-content">
+            <h1>超越极限，感受疾风</h1>
+            <p>全新一代疾风跑鞋，融合尖端科技与极致舒适，助您跑出新速度。</p>
+            <a href="#cta" class="btn btn-primary">立即探索</a>
+        </div>
+        <!-- SVG Wave Separator -->
+        <div class="wave-separator">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- 特性区域 -->
+    <section id="features" class="section">
+        <div class="container">
+            <h2 class="section-title">核心科技</h2>
+            <div class="features-grid">
+                <div class="feature-item fade-in">
+                    <span class="feature-icon">⚡️</span>
+                    <h3>超轻量设计</h3>
+                    <p>采用创新轻质材料，每一步都轻盈自如，减少能量损耗。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <span class="feature-icon">💨</span>
+                    <h3>动态缓震系统</h3>
+                    <p>智能适应您的步态，提供卓越的冲击吸收和能量反馈。</p>
+                </div>
+                <div class="feature-item fade-in">
+                    <span class="feature-icon">👟</span>
+                    <h3>透气网面鞋身</h3>
+                    <p>保持足部干爽舒适，即使在长距离奔跑中也能畅快呼吸。</p>
+                </div>
+                 <div class="feature-item fade-in">
+                    <span class="feature-icon">🔒</span>
+                    <h3>稳固抓地外底</h3>
+                    <p>特殊纹路设计，提供全地形下的可靠抓地力与稳定性。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 产品展示 -->
+    <section id="showcase" class="section">
+        <div class="container showcase-content">
+             <div class="showcase-text fade-in">
+                <h2>为速度而生</h2>
+                <p>疾风跑鞋不仅是一双鞋，更是您突破个人记录的伙伴。流线型外观结合人体工学设计，带来无与伦比的贴合感。</p>
+                <ul>
+                    <li>✓ 先进能量回馈技术</li>
+                    <li>✓ 多种配色可选，彰显个性</li>
+                    <li>✓ 耐磨外底，经久耐用</li>
+                </ul>
+                 <!-- Color Selector Added Here -->
+                <div class="color-selector">
+                    <span>选择颜色:</span>
+                    <div class="color-swatch active" data-color="blue" style="background-color: #007bff;" data-img-src="https://source.unsplash.com/600x400/?blue,running,shoe"></div>
+                    <div class="color-swatch" data-color="red" style="background-color: #dc3545;" data-img-src="https://source.unsplash.com/600x400/?red,running,shoe"></div>
+                    <div class="color-swatch" data-color="black" style="background-color: #343a40;" data-img-src="https://source.unsplash.com/600x400/?black,running,shoe"></div>
+                     <div class="color-swatch" data-color="yellow" style="background-color: #ffc107;" data-img-src="https://source.unsplash.com/600x400/?yellow,running,shoe"></div>
+                </div>
+                <a href="#cta" class="btn btn-primary" style="margin-top: 30px;">查看购买选项</a>
+            </div>
+            <div class="showcase-image fade-in">
+                <img src="https://source.unsplash.com/600x400/?blue,running,shoe" alt="跑鞋展示" id="showcase-shoe-img"> <!-- Added ID -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 用户评价 -->
+    <section id="testimonials" class="section">
+        <div class="container">
+            <h2 class="section-title">跑者心声</h2>
+            <!-- Modified Slider Structure -->
+            <div class="testimonial-slider">
+                 <div class="testimonial-track"> <!-- New Track Wrapper -->
+                    <div class="testimonial"> <!-- Removed active and fade-in -->
+                        <blockquote>这双鞋太棒了！轻便、舒适，而且缓震效果一流。我的配速提升了不少！</blockquote>
+                        <p class="testimonial-author">张伟 <span>- 业余马拉松跑者</span></p>
+                    </div>
+                    <div class="testimonial">
+                        <blockquote>设计很酷，透气性非常好，夏天跑步再也不怕闷脚了。抓地力也很满意。</blockquote>
+                        <p class="testimonial-author">李娜 <span>- 健身爱好者</span></p>
+                    </div>
+                    <div class="testimonial">
+                        <blockquote>这是我穿过最舒服的跑鞋之一，支撑性很好，长距离跑下来脚也不会累。</blockquote>
+                        <p class="testimonial-author">王强 <span>- 资深跑者</span></p>
+                    </div>
+                 </div>
+            </div>
+            <!-- Controls remain outside the slider overflow area -->
+             <div class="slider-controls">
+                <button class="slider-btn prev-btn" aria-label="上一条评价">&lt;</button>
+                <button class="slider-btn next-btn" aria-label="下一条评价">&gt;</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA 区域 -->
+    <section id="cta" class="section">
+        <div class="container fade-in">
+            <h2>准备好体验疾风了吗？</h2>
+            <p>立即选购您的专属疾风跑鞋，开启全新的奔跑旅程。限时优惠进行中！</p>
+            <a href="#" class="btn btn-cta">立即购买</a>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 疾风跑鞋. 保留所有权利.</p>
+            <p>
+                <a href="#">隐私政策</a> | <a href="#">服务条款</a> | <a href="#">联系我们</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 导航栏滚动效果 ---
+            const navbar = document.getElementById('main-nav');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+
+            // --- 导航链接激活状态 & 平滑滚动 ---
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const sections = document.querySelectorAll('section[id]');
+
+            function changeActiveLink() {
+                let index = sections.length;
+                // Adjust offset based on navbar height and a little extra buffer
+                const scrollY = window.scrollY + navbar.offsetHeight + 50;
+
+                while(--index && scrollY < sections[index].offsetTop) {}
+
+                navLinks.forEach((link) => link.classList.remove('active'));
+
+                // Find the link corresponding to the current section
+                const currentSectionId = sections[index] ? sections[index].id : null;
+                if (currentSectionId) {
+                     const activeLink = document.querySelector(`.nav-links a[href*="${currentSectionId}"]`);
+                     if (activeLink) {
+                         activeLink.classList.add('active');
+                     }
+                } else if (window.scrollY < sections[0].offsetTop - navbar.offsetHeight) {
+                    // Handle top of page case, activate first link if available
+                     const firstLink = document.querySelector('.nav-links a');
+                     if(firstLink) firstLink.classList.add('active');
+                }
+            }
+
+            changeActiveLink(); // Initial check
+            window.addEventListener('scroll', changeActiveLink);
+
+            // --- Smooth Scroll Implementation ---
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href.startsWith('#')) {
+                        e.preventDefault();
+                        const targetId = href.substring(1);
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            let offsetTop = targetElement.offsetTop;
+                            // Adjust for sections after the wave separator
+                            if (targetId === 'features' || targetId === 'showcase' || targetId === 'testimonials' || targetId === 'cta') {
+                                // Consider wave height and potentially navbar height if fixed
+                                const waveHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wave-height')) || 80;
+                                offsetTop -= waveHeight;
+                            }
+                             // Always subtract navbar height
+                            offsetTop -= navbar.offsetHeight;
+
+                            window.scrollTo({
+                                top: offsetTop,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                });
+            });
+
+            // ... existing Intersection Observer for fade-in ...
+            const fadeElements = document.querySelectorAll('.fade-in');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15 // Slightly later trigger
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        // Optional: Add staggered delay for items in a grid/list
+                        const delay = entry.target.dataset.delay || 0;
+                        entry.target.style.transitionDelay = `${delay}ms`;
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+             // Add staggered delay to feature items
+            const featureItems = document.querySelectorAll('.feature-item');
+            featureItems.forEach((item, index) => {
+                 item.dataset.delay = index * 100; // 100ms delay between items
+                 observer.observe(item);
+            });
+             // Observe other fade-in elements (without stagger unless specified)
+            fadeElements.forEach(el => {
+                // Avoid re-observing feature items if they are included in fadeElements query
+                if (!el.classList.contains('feature-item')) {
+                    observer.observe(el);
+                }
+            });
+
+            // --- 评价轮播 (待实现滑动逻辑) ---
+            const testimonialTrack = document.querySelector('.testimonial-track');
+            const testimonials = document.querySelectorAll('.testimonial');
+            const prevBtn = document.querySelector('.prev-btn');
+            const nextBtn = document.querySelector('.next-btn');
+            let currentTestimonial = 0;
+            const totalTestimonials = testimonials.length;
+            let testimonialWidth = 0; // Will calculate after layout
+
+            // Function to calculate testimonial width (needs to run after layout)
+            function calculateTestimonialWidth() {
+                 if (testimonials.length > 0) {
+                    // Get width of the first testimonial including margin
+                    const style = window.getComputedStyle(testimonials[0]);
+                    const marginLeft = parseFloat(style.marginLeft);
+                    const marginRight = parseFloat(style.marginRight);
+                    testimonialWidth = testimonials[0].offsetWidth + marginLeft + marginRight;
+                 }
+            }
+
+             // Function to update slider position
+            function updateSliderPosition() {
+                 if (testimonialWidth === 0) calculateTestimonialWidth(); // Calculate if not done yet
+
+                 // Calculate the offset including potential margins
+                 const offset = -currentTestimonial * testimonialWidth;
+                 testimonialTrack.style.transform = `translateX(${offset}px)`;
+                 // console.log("Updating slider to index:", currentTestimonial, "Offset:", offset);
+            }
+
+
+            nextBtn.addEventListener('click', () => {
+                currentTestimonial = (currentTestimonial + 1) % totalTestimonials;
+                updateSliderPosition();
+            });
+
+            prevBtn.addEventListener('click', () => {
+                currentTestimonial = (currentTestimonial - 1 + totalTestimonials) % totalTestimonials;
+                updateSliderPosition();
+            });
+
+            // Recalculate width on window resize
+            window.addEventListener('resize', () => {
+                calculateTestimonialWidth();
+                updateSliderPosition(); // Adjust position based on new width
+            });
+
+             // Automatic sliding
+             let autoSlideInterval = setInterval(() => {
+                 nextBtn.click();
+             }, 6000);
+
+            const sliderContainer = document.querySelector('.testimonial-slider');
+             sliderContainer.addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
+             sliderContainer.addEventListener('mouseleave', () => {
+                 clearInterval(autoSlideInterval);
+                 autoSlideInterval = setInterval(() => {
+                     nextBtn.click();
+                 }, 6000);
+             });
+
+             // Initialize slider position after a short delay to ensure layout is complete
+             setTimeout(() => {
+                calculateTestimonialWidth();
+                updateSliderPosition();
+             }, 100); // Small delay for safety
+
+
+            // --- 颜色选择器 --- 
+            const colorSwatches = document.querySelectorAll('.color-swatch');
+            const shoeImage = document.getElementById('showcase-shoe-img');
+
+            colorSwatches.forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    // Remove active class from all swatches
+                    colorSwatches.forEach(s => s.classList.remove('active'));
+                    // Add active class to the clicked swatch
+                    swatch.classList.add('active');
+                    // Update the image source
+                    const newImageSrc = swatch.dataset.imgSrc;
+                    if (newImageSrc) {
+                         // Optional: Add a fade effect for image change
+                         shoeImage.style.opacity = '0';
+                         setTimeout(() => {
+                            shoeImage.src = newImageSrc;
+                            shoeImage.alt = `跑鞋展示 - ${swatch.dataset.color || 'selected color'}`;
+                            shoeImage.style.opacity = '1';
+                         }, 200); // Match transition duration slightly
+                    }
+                    console.log("Color selected:", swatch.dataset.color);
+                });
+            });
+            // Add transition to shoe image for fade effect
+            shoeImage.style.transition = 'opacity 0.2s ease-in-out';
+
+
+            // --- 英雄区文字动画 --- 
+             const heroTitle = document.querySelector('#hero h1');
+             const heroParagraph = document.querySelector('#hero p'); // Get the paragraph too
+
+             function animateText(element, delayStart = 0, charDelay = 0.04) {
+                 // Check if element exists before proceeding
+                 if (!element) return;
+
+                 const originalText = element.textContent.trim(); // Store original text
+                 element.textContent = ''; // Clear original text
+                 element.style.opacity = '1'; // Make container visible if it wasn't
+                 element.setAttribute('aria-label', originalText); // Keep accessibility
+
+                 originalText.split('').forEach((char, index) => {
+                    const span = document.createElement('span');
+                    span.textContent = char === ' ' ? '\u00A0' : char; // Handle spaces using non-breaking space
+                    span.style.display = 'inline-block';
+                    span.style.opacity = '0';
+                    span.style.transform = 'translateY(25px)'; // Start slightly lower
+                    // Set transition directly on the element for animation trigger
+                    span.style.transition = `opacity 0.5s ${delayStart + index * charDelay}s ease-out, transform 0.5s ${delayStart + index * charDelay}s ease-out`;
+                    element.appendChild(span);
+
+                    // Use requestAnimationFrame to ensure the element is in the DOM and initial styles applied
+                    requestAnimationFrame(() => {
+                         // Add a class or set styles to trigger the transition
+                         span.style.opacity = '1';
+                         span.style.transform = 'translateY(0)';
+                    });
+                 });
+             }
+
+            // Check if elements exist before animating
+            if (heroTitle) {
+                // Start H1 animation slightly after page load (or after hero animation if any)
+                animateText(heroTitle, 0.5); 
+            }
+            if (heroParagraph) {
+                // Estimate title animation duration (approximate)
+                const titleLength = heroTitle ? heroTitle.textContent.length : 0;
+                const titleDuration = titleLength * 0.04 + 0.5; // Use the actual text length for calculation
+                // Start paragraph animation after the title animation likely finishes
+                animateText(heroParagraph, titleDuration + 0.2); 
+            }
+
+             // --- 视差效果优化 (可选，如果 CSS fixed attachment 不理想) ---
+            // window.addEventListener('scroll', () => {
+            //     const hero = document.getElementById('hero');
+            //     const scrollPosition = window.pageYOffset;
+            //     // Apply parallax effect to the ::before pseudo-element background
+            //     // This requires setting background-attachment: scroll; in CSS
+            //     // And potentially adjusting the background-position here
+            //     // hero.style.setProperty('--parallax-y', `${scrollPosition * 0.3}px`); // Example
+            // });
+        });
+    </script>
+
+</body>
+</html> 

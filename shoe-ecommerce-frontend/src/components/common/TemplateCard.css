@@ -1,0 +1,155 @@
+/* TemplateCard.css - 产品模板卡片样式 */
+
+/* 基本卡片样式 */
+.template-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.template-card:hover {
+  transform: translateY(-4px);
+}
+
+/* 折扣徽章动画 */
+.discount-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.discount-badge::after {
+  content: "";
+  position: absolute;
+  top: -180%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  opacity: 0;
+  transform: rotate(30deg);
+  background: rgba(255, 255, 255, 0.13);
+  background: linear-gradient(
+    to right, 
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(255, 255, 255, 0.13) 77%,
+    rgba(255, 255, 255, 0.5) 92%,
+    rgba(255, 255, 255, 0.0) 100%
+  );
+}
+
+/* 闪烁效果动画 */
+.discount-badge {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(229, 62, 62, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+  }
+}
+
+/* 鼠标悬停时的闪光效果 */
+.template-card:hover .discount-badge::after {
+  opacity: 1;
+  top: -30%;
+  left: -30%;
+  transition-property: left, top, opacity;
+  transition-duration: 0.7s, 0.7s, 0.15s;
+  transition-timing-function: ease;
+}
+
+/* 新品标签淡入效果 */
+.template-card span:first-child {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 价格变化动画 */
+.template-card:hover .text-red-600 {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+/* 图片缩放效果 */
+.template-card img {
+  transition: transform 0.5s ease;
+}
+
+.template-card:hover img {
+  transform: scale(1.05);
+}
+
+/* 促销标签高亮效果 */
+@keyframes highlight {
+  0%, 100% {
+    background-color: #f97316; /* orange-500 */
+  }
+  50% {
+    background-color: #ea580c; /* orange-600 */
+  }
+}
+
+.template-card:hover .bg-orange-500 {
+  animation: highlight 1.5s infinite;
+}
+
+/* 原价删除线动画 */
+.template-card:hover .line-through {
+  text-decoration-color: #ef4444; /* red-500 */
+  text-decoration-thickness: 2px;
+  transition: all 0.3s ease;
+}
+
+/* 高级阴影效果 */
+.template-card {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.template-card:hover {
+  box-shadow: 
+    0 12px 20px rgba(0,0,0,0.1),
+    0 4px 8px rgba(0,0,0,0.06);
+}
+
+/* 添加响应式效果 */
+@media (max-width: 640px) {
+  .template-card .discount-badge {
+    font-size: 0.65rem;
+  }
+}
+
+/* 对折扣大于等于50%的商品应用特殊效果 */
+.high-discount {
+  background-color: #dc2626 !important; /* red-600 */
+  animation: highDiscountPulse 1.5s infinite !important;
+}
+
+@keyframes highDiscountPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+} 
